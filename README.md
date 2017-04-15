@@ -7,7 +7,7 @@
 
 * 硬编码H264格式视频 + 对视频帧的图像处理
   
-  具体看例子里的 [TestVideoEncoder]()
+  具体看例子里的 [TestVideoEncoder](https://github.com/ChillingVan/Android_ShowVideoStream/blob/master/app/src/main/java/com/chillingvan/instantvideo/sample/test/video/TestVideoEncoder.java)
   其中实现图片处理的部分：
 ```java
 public class TestVideoEncoder {
@@ -46,7 +46,7 @@ public class TestVideoEncoder {
 
 * 使用 camera 录像并处理
 
-关于Camera，我已经封装好了 [InstantVideoCamera]()
+关于Camera，我已经封装好了 [InstantVideoCamera](https://github.com/ChillingVan/Android_ShowVideoStream/blob/master/applibs/src/main/java/com/chillingvan/lib/camera/InstantVideoCamera.java)
 
 
 不过没写sample，以后补上。
@@ -54,7 +54,7 @@ public class TestVideoEncoder {
 * 编码产生aac格式音频
 
   直接使用手机进行录音。
-  具体看例子里的 [TestAudioEncoder]()
+  具体看例子里的 [TestAudioEncoder](https://github.com/ChillingVan/Android_ShowVideoStream/blob/master/app/src/main/java/com/chillingvan/instantvideo/sample/test/audio/TestAudioEncoder.java)
   
 
   例子中生成的aac文件在/storage/sdcard/Android/data/com.chillingvan.instantvideo.sample/files/test_aac_encode.aac"，可以在代码里修改输出路径
