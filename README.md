@@ -27,6 +27,7 @@ public class TestVideoEncoder {
 //...
 }
 ```
+  实现图像处理的关键是用了[android-opengl-canvas](https://github.com/ChillingVan/android-openGL-canvas)
 
   例子中生成的h264文件在/storage/sdcard/Android/data/com.chillingvan.instantvideo.sample/files/test_h264_encode.h264，可以在代码里修改输出路径
 ```java
@@ -46,10 +47,10 @@ public class TestVideoEncoder {
 
 * 使用 camera 录像并处理
 
-关于Camera，我已经封装好了 [InstantVideoCamera](https://github.com/ChillingVan/Android_ShowVideoStream/blob/master/applibs/src/main/java/com/chillingvan/lib/camera/InstantVideoCamera.java)
+  关于Camera，我已经封装好了 [InstantVideoCamera](https://github.com/ChillingVan/Android_ShowVideoStream/blob/master/applibs/src/main/java/com/chillingvan/lib/camera/InstantVideoCamera.java)
 
 
-不过没写sample，以后补上。
+  不过没写sample，以后补上。
 
 * 编码产生aac格式音频
 
