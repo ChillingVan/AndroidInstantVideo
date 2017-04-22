@@ -17,8 +17,7 @@
   ~  *  * limitations under the License.
   ~  *
   ~  */
-  -->
-
+-->
 <manifest package="com.chillingvan.instantvideo.sample"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -48,8 +47,17 @@
                 <category android:name="com.chillingvan.instantvideo.sample"/>
             </intent-filter>
         </activity>
-        <activity android:name=".test.audio.TestAudioEncoderActivity"
-                  android:label="TestAudioEncoderActivity"
+        <activity
+            android:name=".test.audio.TestAudioEncoderActivity"
+            android:label="TestAudioEncoderActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="com.chillingvan.instantvideo.sample"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".test.camera.TestCameraAndVideoActivity"
+                  android:label="TestCameraAndVideoActivity"
             >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

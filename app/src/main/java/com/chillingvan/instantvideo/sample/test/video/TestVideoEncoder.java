@@ -21,23 +21,18 @@
 package com.chillingvan.instantvideo.sample.test.video;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.chillingvan.canvasgl.ICanvasGL;
 import com.chillingvan.canvasgl.Loggers;
 import com.chillingvan.canvasgl.glcanvas.BasicTexture;
 import com.chillingvan.canvasgl.glcanvas.GLPaint;
-import com.chillingvan.canvasgl.glcanvas.RawTexture;
 import com.chillingvan.canvasgl.glview.texture.gles.EglContextWrapper;
-import com.chillingvan.instantvideo.sample.R;
-import com.chillingvan.lib.encoder.video.H264Encoder;
 import com.chillingvan.lib.encoder.MediaCodecInputStream;
+import com.chillingvan.lib.encoder.video.H264Encoder;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -71,27 +66,11 @@ public class TestVideoEncoder {
         }
     }
 
-    public void prepareEncoder() {
+    public void prepareEncoder(H264Encoder.OnDrawListener onDrawListener) {
         try {
             h264Encoder = new H264Encoder(640, 480, 2949120, 30, 5, eglCtx);
             h264Encoder.setSharedTexture(outsideTexture, outsideSurfaceTexture);
-            final Bitmap bitmap = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.lenna);
-            h264Encoder.setOnDrawListener(new H264Encoder.OnDrawListener() {
-                @Override
-                public void onGLDraw(ICanvasGL canvasGL, SurfaceTexture producedSurfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
-                    drawCnt++;
-
-                    if (drawCnt == 19 || drawCnt == 39) {
-                        canvasGL.drawBitmap(bitmap, 0, 0);
-                    }
-                    drawRect(canvasGL, drawCnt);
-
-                    if (drawCnt >= 60) {
-                        drawCnt = 0;
-                    }
-                    Log.i("TestVideoEncoder", "gl draw");
-                }
-            });
+            h264Encoder.setOnDrawListener(onDrawListener);
         } catch (IOException | IllegalStateException e) {
             e.printStackTrace();
         }
@@ -119,6 +98,10 @@ public class TestVideoEncoder {
             return;
         }
         h264Encoder.stop();
+    }
+
+    public boolean isStart() {
+        return h264Encoder != null && h264Encoder.isStart();
     }
 
     public void destroy() {

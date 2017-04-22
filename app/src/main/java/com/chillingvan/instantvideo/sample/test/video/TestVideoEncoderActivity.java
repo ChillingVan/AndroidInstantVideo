@@ -20,19 +20,26 @@
 
 package com.chillingvan.instantvideo.sample.test.video;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 
+import com.chillingvan.canvasgl.ICanvasGL;
+import com.chillingvan.canvasgl.glcanvas.BasicTexture;
 import com.chillingvan.canvasgl.glcanvas.RawTexture;
 import com.chillingvan.canvasgl.glview.texture.GLSurfaceTextureProducerView;
 import com.chillingvan.canvasgl.glview.texture.gles.EglContextWrapper;
 import com.chillingvan.canvasgl.glview.texture.gles.GLThread;
 import com.chillingvan.instantvideo.sample.R;
+import com.chillingvan.lib.encoder.video.H264Encoder;
 
 
 public class TestVideoEncoderActivity extends AppCompatActivity {
@@ -88,7 +95,23 @@ public class TestVideoEncoderActivity extends AppCompatActivity {
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
                 if (msg.what == 1) {
-                    testVideoEncoder.prepareEncoder();
+                    final Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.lenna);
+                    testVideoEncoder.prepareEncoder(new H264Encoder.OnDrawListener() {
+                        @Override
+                        public void onGLDraw(ICanvasGL canvasGL, SurfaceTexture producedSurfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
+                            TestVideoEncoder.drawCnt++;
+
+                            if (TestVideoEncoder.drawCnt == 19 || TestVideoEncoder.drawCnt == 39) {
+                                canvasGL.drawBitmap(bitmap, 0, 0);
+                            }
+                            TestVideoEncoder.drawRect(canvasGL, TestVideoEncoder.drawCnt);
+
+                            if (TestVideoEncoder.drawCnt >= 60) {
+                                TestVideoEncoder.drawCnt = 0;
+                            }
+                            Log.i("TestVideoEncoder", "gl draw");
+                        }
+                    });
                     testVideoEncoder.start();
                     for (int i = 0; i < 120; i++) {
                         produceTextureView.requestRenderAndWait();

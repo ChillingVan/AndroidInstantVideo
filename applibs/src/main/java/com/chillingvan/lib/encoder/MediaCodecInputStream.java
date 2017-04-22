@@ -131,6 +131,9 @@ public class MediaCodecInputStream extends InputStream {
 
     public static void readAll(MediaCodecInputStream is, byte[] buffer, int offset, @NonNull OnReadAllCallback onReadAllCallback) {
         int readSize = 0;
+        if (is.available() <= 0) {
+            return;
+        }
         do {
             try {
                 readSize = is.read(buffer, offset, buffer.length);

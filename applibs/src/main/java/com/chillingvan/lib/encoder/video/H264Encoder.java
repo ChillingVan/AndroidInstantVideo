@@ -52,7 +52,7 @@ public class H264Encoder {
     private static final int IFRAME_INTERVAL = 5;           // 5 seconds between I-frames
     private final EncoderCanvas offScreenCanvas;
     private OnDrawListener onDrawListener;
-    private boolean isFirst;
+    private boolean isStart;
 
 
     public H264Encoder(int width, int height, int bitRate, int frameRate, int iframeInterval) throws IOException {
@@ -108,18 +108,25 @@ public class H264Encoder {
 
     public void start() {
         offScreenCanvas.start();
+        isStart = true;
     }
 
     public void stop() {
         Loggers.d("H264Encoder", "stop: ");
         offScreenCanvas.onPause();
         mEncoder.stop();
+        isStart = false;
     }
 
     public void release() {
         offScreenCanvas.end();
         mEncoder.stop();
         mEncoder.release();
+        isStart = false;
+    }
+
+    public boolean isStart() {
+        return isStart;
     }
 
     public void requestRender() {
