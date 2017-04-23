@@ -49,8 +49,8 @@ public class TestVideoEncoder {
 
   关于Camera，我已经封装好了 [InstantVideoCamera](https://github.com/ChillingVan/Android_ShowVideoStream/blob/master/applibs/src/main/java/com/chillingvan/lib/camera/InstantVideoCamera.java)
 
+  具体可以查看例子，目前例子在我的4.4手机上录下来的文件有一卡一卡的现象，在一部6.0的手机上没有。所以说其实MediaCodec的坑不少，看过不少sdk似乎都是使用ffmpeg作录制。
 
-  不过没写sample，以后补上。
 
 * 编码产生aac格式音频
 

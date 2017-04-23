@@ -24,6 +24,7 @@ import android.annotation.SuppressLint;
 import android.media.MediaCodec;
 import android.media.MediaCodec.BufferInfo;
 import android.media.MediaFormat;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -33,11 +34,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-/**
- * An InputStream that uses data from a MediaCodec.
- * The purpose of this class is to interface existing RTP packetizers of
- * libstreaming with the new MediaCodec API. This class is not thread safe !
- */
 @SuppressLint("NewApi")
 public class MediaCodecInputStream extends InputStream {
 
@@ -78,7 +74,11 @@ public class MediaCodecInputStream extends InputStream {
                     encoderStatus = mMediaCodec.dequeueOutputBuffer(mBufferInfo, 50000);
                     Loggers.d(TAG, "Index: " + encoderStatus + " Time: " + mBufferInfo.presentationTimeUs + " size: " + mBufferInfo.size);
                     if (encoderStatus >= 0) {
-                        mBuffer = encoderOutputBuffers[encoderStatus];
+                        if (Build.VERSION.SDK_INT >= 21) {
+                            mBuffer = mMediaCodec.getOutputBuffer(encoderStatus);
+                        } else {
+                            mBuffer = encoderOutputBuffers[encoderStatus];
+                        }
                         mBuffer.position(0);
                         break;
                     } else if (encoderStatus == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
@@ -131,9 +131,9 @@ public class MediaCodecInputStream extends InputStream {
 
     public static void readAll(MediaCodecInputStream is, byte[] buffer, int offset, @NonNull OnReadAllCallback onReadAllCallback) {
         int readSize = 0;
-        if (is.available() <= 0) {
-            return;
-        }
+//        if (is.available() <= 0) {
+//            return;
+//        }
         do {
             try {
                 readSize = is.read(buffer, offset, buffer.length);

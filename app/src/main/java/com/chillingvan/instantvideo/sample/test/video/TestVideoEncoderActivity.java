@@ -115,7 +115,7 @@ public class TestVideoEncoderActivity extends AppCompatActivity {
                     testVideoEncoder.start();
                     for (int i = 0; i < 120; i++) {
                         produceTextureView.requestRenderAndWait();
-                        testVideoEncoder.writeAFrame();
+                        testVideoEncoder.encodeAFrame();
                         outputVideoHandler.sendEmptyMessage(0);
                         try {
                             Thread.sleep(16);

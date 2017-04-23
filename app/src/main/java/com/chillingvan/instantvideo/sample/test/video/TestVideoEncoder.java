@@ -116,9 +116,13 @@ public class TestVideoEncoder {
         h264Encoder.release();
     }
 
-    public void writeAFrame() {
-        Loggers.d("TestVideoEncoder", "writeAFrame");
-        h264Encoder.requestRenderAndWait();
+    public boolean encodeAFrame() {
+        if (isStart()) {
+            Loggers.d("TestVideoEncoder", "writeAFrame");
+            h264Encoder.requestRenderAndWait();
+            return true;
+        }
+        return false;
     }
 
     public void write() {

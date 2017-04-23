@@ -25,14 +25,11 @@ import com.chillingvan.lib.encoder.video.H264Encoder;
 
 public class TestCameraAndVideoActivity extends AppCompatActivity {
 
-    public static final int MESSAGE_START = 1;
-    public static final int MESSAGE_STOP = 2;
     private TestVideoEncoder testVideoEncoder;
     private CameraPreviewTextureView cameraPreviewTextureView;
     private InstantVideoCamera instantVideoCamera;
-    private Handler handler;
-    private HandlerThread inputHandlerThread;
     private HandlerThread outputVideoThread;
+    private Handler outputVideoHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,42 +38,18 @@ public class TestCameraAndVideoActivity extends AppCompatActivity {
         cameraPreviewTextureView = (CameraPreviewTextureView) findViewById(R.id.camera_produce_view);
         instantVideoCamera = new InstantVideoCamera();
 
+    }
 
+    private void initWriteFileHandler() {
         outputVideoThread = new HandlerThread("outputVideoThread");
         outputVideoThread.start();
 
-        final Handler outputVideoHandler = new Handler(outputVideoThread.getLooper()) {
+        outputVideoHandler = new Handler(outputVideoThread.getLooper()) {
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
-                testVideoEncoder.write();
-            }
-        };
-
-        inputHandlerThread = new HandlerThread("encoder");
-        inputHandlerThread.start();
-
-        handler = new Handler(inputHandlerThread.getLooper()) {
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-                if (msg.what == MESSAGE_START) {
-                    if (!testVideoEncoder.isStart()) {
-                        testVideoEncoder.prepareEncoder(new H264Encoder.OnDrawListener() {
-                            @Override
-                            public void onGLDraw(ICanvasGL canvasGL, SurfaceTexture producedSurfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
-                                canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, 0, outsideTexture.getWidth(), outsideTexture.getHeight());
-                                Log.i("TestVideoEncoder", "gl draw");
-                            }
-                        });
-                        testVideoEncoder.start();
-                    }
-                    testVideoEncoder.writeAFrame();
-                    outputVideoHandler.sendEmptyMessage(0);
-
-                    sendEmptyMessage(MESSAGE_START);
-                } else if (msg.what == MESSAGE_STOP){
-                    testVideoEncoder.stop();
+                if (msg.what == 0) {
+                    testVideoEncoder.write();
                 }
             }
         };
@@ -85,6 +58,7 @@ public class TestCameraAndVideoActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        initWriteFileHandler();
         instantVideoCamera.openCamera(Camera.CameraInfo.CAMERA_FACING_FRONT, 1280, 720);
         initCameraTexture();
         cameraPreviewTextureView.onResume();
@@ -105,6 +79,9 @@ public class TestCameraAndVideoActivity extends AppCompatActivity {
                     @Override
                     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
                         cameraPreviewTextureView.requestRenderAndWait();
+                        if (testVideoEncoder.encodeAFrame()) {
+                            outputVideoHandler.sendEmptyMessage(0);
+                        }
                     }
                 });
 
@@ -122,9 +99,8 @@ public class TestCameraAndVideoActivity extends AppCompatActivity {
         cameraPreviewTextureView.onPause();
 
         if (testVideoEncoder.isStart()) {
-            handler.sendEmptyMessage(MESSAGE_STOP);
+            testVideoEncoder.stop();
         }
-        inputHandlerThread.quit();
         outputVideoThread.quit();
     }
 
@@ -137,10 +113,17 @@ public class TestCameraAndVideoActivity extends AppCompatActivity {
     public void clickStartTest(View view) {
         TextView textView = (TextView) view;
         if (testVideoEncoder.isStart()) {
-            handler.sendEmptyMessage(MESSAGE_STOP);
+            testVideoEncoder.stop();
             textView.setText("START");
         } else {
-            handler.sendEmptyMessage(MESSAGE_START);
+            testVideoEncoder.prepareEncoder(new H264Encoder.OnDrawListener() {
+                @Override
+                public void onGLDraw(ICanvasGL canvasGL, SurfaceTexture producedSurfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
+                    canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, 0, outsideTexture.getWidth(), outsideTexture.getHeight());
+                    Log.i("TestVideoEncoder", "gl draw");
+                }
+            });
+            testVideoEncoder.start();
             textView.setText("STOP");
         }
     }
