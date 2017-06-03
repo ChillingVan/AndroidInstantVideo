@@ -45,17 +45,15 @@ public class AACEncoder {
     private AudioRecord mAudioRecord;
     private final MediaCodec mMediaCodec;
     private final MediaCodecInputStream mediaCodecInputStream;
-    private final Thread mThread;
+    private Thread mThread;
     private OnDataComingCallback onDataComingCallback;
-    private long startWhen;
+    private int samplingRate;
+    private final int bufferSize;
 
     public AACEncoder(final int samplingRate, int bitRate) throws IOException {
+        this.samplingRate = samplingRate;
 
-        final int bufferSize = AudioRecord.getMinBufferSize(samplingRate, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT) * 2;
-
-
-        mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, samplingRate, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT, bufferSize);
-
+        bufferSize = AudioRecord.getMinBufferSize(samplingRate, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT) * 2;
         mMediaCodec = MediaCodec.createEncoderByType("audio/mp4a-latm");
         MediaFormat format = MediaFormat.createAudioFormat("audio/mp4a-latm", samplingRate, 2);
         format.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
@@ -63,14 +61,16 @@ public class AACEncoder {
         format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, bufferSize);
         mMediaCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
 
+        mediaCodecInputStream = new MediaCodecInputStream(mMediaCodec);
+        mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, samplingRate, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT, bufferSize);
+
+    }
+
+    public void start() {
         mAudioRecord.startRecording();
         mMediaCodec.start();
-        startWhen = System.nanoTime();
-
-        mediaCodecInputStream = new MediaCodecInputStream(mMediaCodec);
+        final long startWhen = System.nanoTime();
         final ByteBuffer[] inputBuffers = mMediaCodec.getInputBuffers();
-
-
         mThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -104,6 +104,23 @@ public class AACEncoder {
         mThread.start();
     }
 
+
+    public static void addADTStoPacket(byte[] packet, int packetLen) {
+        int profile = 2; // AAC LC
+        int freqIdx = 4; // 44.1KHz
+        int chanCfg = 2; // CPE
+
+
+        // fill in ADTS data
+        packet[0] = (byte) 0xFF;
+        packet[1] = (byte) 0xF9;
+        packet[2] = (byte) (((profile - 1) << 6) + (freqIdx << 2) + (chanCfg >> 2));
+        packet[3] = (byte) (((chanCfg & 3) << 6) + (packetLen >> 11));
+        packet[4] = (byte) ((packetLen & 0x7FF) >> 3);
+        packet[5] = (byte) (((packetLen & 7) << 5) + 0x1F);
+        packet[6] = (byte) 0xFC;
+    }
+
     public void setOnDataComingCallback(OnDataComingCallback onDataComingCallback) {
         this.onDataComingCallback = onDataComingCallback;
     }
@@ -119,10 +136,15 @@ public class AACEncoder {
 
 
     public synchronized void stop() {
+        if (mThread == null) {
+            return;
+        }
         Loggers.d(TAG, "Interrupting threads...");
         mThread.interrupt();
         mAudioRecord.stop();
+    }
+
+    public void release() {
         mAudioRecord.release();
-        mAudioRecord = null;
     }
 }

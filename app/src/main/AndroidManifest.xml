@@ -24,6 +24,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
         android:allowBackup="true"
@@ -56,8 +57,18 @@
                 <category android:name="com.chillingvan.instantvideo.sample"/>
             </intent-filter>
         </activity>
-        <activity android:name=".test.camera.TestCameraAndVideoActivity"
-                  android:label="TestCameraAndVideoActivity"
+        <activity
+            android:name=".test.camera.TestCameraAndVideoActivity"
+            android:label="TestCameraAndVideoActivity"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="com.chillingvan.instantvideo.sample"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".test.publisher.TestCameraPublisherActivity"
+                  android:label="TestCameraPublisherActivity"
             >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

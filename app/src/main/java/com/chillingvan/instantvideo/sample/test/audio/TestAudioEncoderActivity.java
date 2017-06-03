@@ -37,7 +37,10 @@ public class TestAudioEncoderActivity extends AppCompatActivity {
         setContentView(R.layout.activity_test_audio_encoder);
 
         testAudioEncoder = new TestAudioEncoder(getApplicationContext());
+        testAudioEncoder.prepareEncoder();
     }
+
+
 
 
     @Override
@@ -52,7 +55,7 @@ public class TestAudioEncoderActivity extends AppCompatActivity {
             testAudioEncoder.stop();
             textView.setText("RECORD");
         } else {
-            testAudioEncoder.prepareEncoder();
+            testAudioEncoder.start();
             textView.setText("stop");
         }
     }
