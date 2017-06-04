@@ -64,7 +64,7 @@
         android:id="@+id/ip_input_test"
         android:layout_width="262dp"
         android:layout_height="wrap_content"
-        android:text="rtmp://192.168.0.139:19305/live/room"
+        android:text="rtmp://192.168.0.140:19305/live/room"
         android:layout_marginRight="8dp"
         android:layout_marginTop="3dp"
         android:hint="rtmp://192.168.1.139:19305/live/room"
