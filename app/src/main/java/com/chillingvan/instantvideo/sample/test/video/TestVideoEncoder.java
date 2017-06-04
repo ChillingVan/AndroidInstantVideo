@@ -24,6 +24,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
+import android.media.MediaCodec;
 import android.util.Log;
 
 import com.chillingvan.canvasgl.ICanvasGL;
@@ -129,7 +130,7 @@ public class TestVideoEncoder {
         MediaCodecInputStream mediaCodecInputStream = h264Encoder.getMediaCodecInputStream();
         MediaCodecInputStream.readAll(mediaCodecInputStream, writeBuffer, 0, new MediaCodecInputStream.OnReadAllCallback() {
             @Override
-            public void onReadOnce(byte[] buffer, int readSize, int mediaBufferSize) {
+            public void onReadOnce(byte[] buffer, int readSize, MediaCodec.BufferInfo bufferInfo) {
                 Loggers.d("TestVideoEncoder", String.format("onReadOnce: readSize:%d", readSize));
                 if (readSize <= 0) {
                     return;

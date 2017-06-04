@@ -21,6 +21,7 @@
 package com.chillingvan.instantvideo.sample.test.audio;
 
 import android.content.Context;
+import android.media.MediaCodec;
 
 import com.chillingvan.canvasgl.Loggers;
 import com.chillingvan.lib.encoder.MediaCodecInputStream;
@@ -62,9 +63,15 @@ public class TestAudioEncoder {
                     write();
                 }
             });
-            isStart = true;
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void start() {
+        if (!isStart) {
+            aacEncoder.start();
+            isStart = true;
         }
     }
 
@@ -87,15 +94,15 @@ public class TestAudioEncoder {
             boolean shouldAddPacketHeader = true;
             byte[] header = new byte[7];
             @Override
-            public void onReadOnce(byte[] buffer, int readSize, int mediaBufferSize) {
+            public void onReadOnce(byte[] buffer, int readSize, MediaCodec.BufferInfo bufferInfo) {
                 if (readSize <= 0) {
                     return;
                 }
                 try {
-                    Loggers.d("TestAudioEncoder", String.format("onReadOnce: readSize:%d, mediaBufferSize:%d", readSize, mediaBufferSize));
+                    Loggers.d("TestAudioEncoder", String.format("onReadOnce: readSize:%d, bufferInfo:%d", readSize, bufferInfo.size));
                     if (shouldAddPacketHeader) {
                         Loggers.d("TestAudioEncoder", String.format("onReadOnce: add packet header"));
-                        addADTStoPacket(header, 7 + mediaBufferSize);
+                        AACEncoder.addADTStoPacket(header, 7 + bufferInfo.size);
                         os.write(header);
                     }
                     os.write(buffer, 0, readSize);
@@ -103,24 +110,9 @@ public class TestAudioEncoder {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                shouldAddPacketHeader = readSize >= mediaBufferSize;
+                shouldAddPacketHeader = readSize >= bufferInfo.size;
             }
         });
     }
 
-    private static void addADTStoPacket(byte[] packet, int packetLen) {
-        int profile = 2; // AAC LC
-        int freqIdx = 4; // 44.1KHz
-        int chanCfg = 2; // CPE
-
-
-        // fill in ADTS data
-        packet[0] = (byte) 0xFF;
-        packet[1] = (byte) 0xF9;
-        packet[2] = (byte) (((profile - 1) << 6) + (freqIdx << 2) + (chanCfg >> 2));
-        packet[3] = (byte) (((chanCfg & 3) << 6) + (packetLen >> 11));
-        packet[4] = (byte) ((packetLen & 0x7FF) >> 3);
-        packet[5] = (byte) (((packetLen & 7) << 5) + 0x1F);
-        packet[6] = (byte) 0xFC;
-    }
 }

@@ -49,7 +49,6 @@ public class MediaCodecInputStream extends InputStream {
 
     public MediaCodecInputStream(MediaCodec mediaCodec) {
         mMediaCodec = mediaCodec;
-        encoderOutputBuffers = mMediaCodec.getOutputBuffers();
     }
 
     @Override
@@ -77,12 +76,10 @@ public class MediaCodecInputStream extends InputStream {
                         if (Build.VERSION.SDK_INT >= 21) {
                             mBuffer = mMediaCodec.getOutputBuffer(encoderStatus);
                         } else {
-                            mBuffer = encoderOutputBuffers[encoderStatus];
+                            mBuffer = mMediaCodec.getOutputBuffers()[encoderStatus];
                         }
                         mBuffer.position(0);
                         break;
-                    } else if (encoderStatus == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
-                        encoderOutputBuffers = mMediaCodec.getOutputBuffers();
                     } else if (encoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                         mMediaFormat = mMediaCodec.getOutputFormat();
                         Log.i(TAG, mMediaFormat.toString());
@@ -130,14 +127,22 @@ public class MediaCodecInputStream extends InputStream {
     }
 
     public static void readAll(MediaCodecInputStream is, byte[] buffer, int offset, @NonNull OnReadAllCallback onReadAllCallback) {
+        byte[] readBuf;
+        int readBufOffset;
+
+        if (is.available() > buffer.length - offset) {
+            readBuf = new byte[is.available()];
+            readBufOffset = 0;
+        } else {
+            readBuf = buffer;
+            readBufOffset = offset;
+        }
+
         int readSize = 0;
-//        if (is.available() <= 0) {
-//            return;
-//        }
         do {
             try {
-                readSize = is.read(buffer, offset, buffer.length);
-                onReadAllCallback.onReadOnce(buffer, readSize, is.getLastBufferInfo().size);
+                readSize = is.read(readBuf, readBufOffset, readBuf.length);
+                onReadAllCallback.onReadOnce(readBuf, readSize, is.getLastBufferInfo());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -145,6 +150,6 @@ public class MediaCodecInputStream extends InputStream {
     }
 
     public interface OnReadAllCallback {
-        void onReadOnce(byte[] buffer, int readSize, int mediaBufferSize);
+        void onReadOnce(byte[] buffer, int readSize, BufferInfo mediaBufferSize);
     }
 }

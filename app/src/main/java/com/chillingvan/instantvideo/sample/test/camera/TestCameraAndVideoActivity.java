@@ -36,7 +36,7 @@ public class TestCameraAndVideoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_and_video);
         cameraPreviewTextureView = (CameraPreviewTextureView) findViewById(R.id.camera_produce_view);
-        instantVideoCamera = new InstantVideoCamera();
+        instantVideoCamera = new InstantVideoCamera(Camera.CameraInfo.CAMERA_FACING_FRONT, 1280, 720);
 
     }
 
@@ -59,7 +59,7 @@ public class TestCameraAndVideoActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         initWriteFileHandler();
-        instantVideoCamera.openCamera(Camera.CameraInfo.CAMERA_FACING_FRONT, 1280, 720);
+        instantVideoCamera.openCamera();
         initCameraTexture();
         cameraPreviewTextureView.onResume();
     }
