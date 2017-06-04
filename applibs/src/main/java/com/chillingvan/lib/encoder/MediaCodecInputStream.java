@@ -127,11 +127,22 @@ public class MediaCodecInputStream extends InputStream {
     }
 
     public static void readAll(MediaCodecInputStream is, byte[] buffer, int offset, @NonNull OnReadAllCallback onReadAllCallback) {
+        byte[] readBuf;
+        int readBufOffset;
+
+        if (is.available() > buffer.length - offset) {
+            readBuf = new byte[is.available()];
+            readBufOffset = 0;
+        } else {
+            readBuf = buffer;
+            readBufOffset = offset;
+        }
+
         int readSize = 0;
         do {
             try {
-                readSize = is.read(buffer, offset, buffer.length);
-                onReadAllCallback.onReadOnce(buffer, readSize, is.getLastBufferInfo());
+                readSize = is.read(readBuf, readBufOffset, readBuf.length);
+                onReadAllCallback.onReadOnce(readBuf, readSize, is.getLastBufferInfo());
             } catch (IOException e) {
                 e.printStackTrace();
             }
