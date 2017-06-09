@@ -36,6 +36,11 @@ import com.chillingvan.canvasgl.ICanvasGL;
 import com.chillingvan.canvasgl.Loggers;
 import com.chillingvan.canvasgl.glcanvas.BasicTexture;
 import com.chillingvan.canvasgl.glcanvas.RawTexture;
+import com.chillingvan.canvasgl.textureFilter.ContrastFilter;
+import com.chillingvan.canvasgl.textureFilter.DirectionalSobelEdgeDetectionFilter;
+import com.chillingvan.canvasgl.textureFilter.HueFilter;
+import com.chillingvan.canvasgl.textureFilter.SaturationFilter;
+import com.chillingvan.canvasgl.textureFilter.TextureFilter;
 import com.chillingvan.instantvideo.sample.R;
 import com.chillingvan.instantvideo.sample.test.camera.CameraPreviewTextureView;
 import com.chillingvan.lib.camera.InstantVideoCamera;
@@ -59,6 +64,12 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test_camera_publisher);
         cameraPreviewTextureView = (CameraPreviewTextureView) findViewById(R.id.camera_produce_view);
+        cameraPreviewTextureView.setOnDrawListener(new H264Encoder.OnDrawListener() {
+            @Override
+            public void onGLDraw(ICanvasGL canvasGL, SurfaceTexture surfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
+                drawVideoFrame(canvasGL, surfaceTexture, rawTexture);
+            }
+        });
         addrEditText = (EditText) findViewById(R.id.ip_input_test);
         instantVideoCamera = new InstantVideoCamera(Camera.CameraInfo.CAMERA_FACING_FRONT, 1280, 720);
 
@@ -68,13 +79,11 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
-                StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam();
+                StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam(1280, 720, 322560 * 4, 30, 5, 44100, 19200);
                 streamPublisher.prepareEncoder(streamPublisherParam, new H264Encoder.OnDrawListener() {
                     @Override
                     public void onGLDraw(ICanvasGL canvasGL, SurfaceTexture surfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
-                        // Here you can do video process
-                        // 此处可以视频处理，例如加水印等等
-                        canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, 0, outsideTexture.getWidth(), outsideTexture.getHeight());
+                        drawVideoFrame(canvasGL, outsideSurfaceTexture, outsideTexture);
                         Loggers.i("DEBUG", "gl draw");
                     }
                 });
@@ -89,6 +98,19 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
 //        streamPublisher = new CameraStreamPublisher(new RTMPStreamMuxer(), cameraPreviewTextureView, instantVideoCamera);
         String filename = getExternalFilesDir(null) + "/test_flv_encode.flv";
         streamPublisher = new CameraStreamPublisher(new RTMPStreamMuxer(filename), cameraPreviewTextureView, instantVideoCamera);
+    }
+
+    private void drawVideoFrame(ICanvasGL canvasGL, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
+        // Here you can do video process
+        // 此处可以视频处理，例如加水印等等
+        TextureFilter textureFilterLT = new ContrastFilter(2.0f);
+        TextureFilter textureFilterRT = new HueFilter(180);
+        TextureFilter textureFilterLB = new SaturationFilter(1.5f);
+        TextureFilter textureFilterRB = new DirectionalSobelEdgeDetectionFilter(2.0f);
+        canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, 0, outsideTexture.getWidth()/2, outsideTexture.getHeight()/2, textureFilterLT);
+        canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, outsideTexture.getWidth()/2, 0, outsideTexture.getWidth(), outsideTexture.getHeight()/2, textureFilterRT);
+        canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, outsideTexture.getHeight()/2, outsideTexture.getWidth()/2, outsideTexture.getHeight(), textureFilterLB);
+        canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, outsideTexture.getWidth()/2, outsideTexture.getHeight()/2, outsideTexture.getWidth(), outsideTexture.getHeight(), textureFilterRB);
     }
 
     @Override

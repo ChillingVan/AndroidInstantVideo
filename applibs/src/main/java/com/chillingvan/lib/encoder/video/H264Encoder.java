@@ -111,17 +111,16 @@ public class H264Encoder {
         isStart = true;
     }
 
-    public void stop() {
-        Loggers.d("H264Encoder", "stop: ");
-        offScreenCanvas.onPause();
-        mEncoder.stop();
-        isStart = false;
-    }
+    public void close() {
+        if (!isStart) return;
 
-    public void release() {
+        Loggers.d("H264Encoder", "close");
         offScreenCanvas.end();
-        mEncoder.stop();
-        mEncoder.release();
+        mediaCodecInputStream.close();
+        synchronized (mEncoder) {
+            mEncoder.stop();
+            mEncoder.release();
+        }
         isStart = false;
     }
 

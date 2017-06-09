@@ -98,7 +98,7 @@ public class TestVideoEncoder {
         if (h264Encoder == null) {
             return;
         }
-        h264Encoder.stop();
+        h264Encoder.close();
     }
 
     public boolean isStart() {
@@ -114,7 +114,7 @@ public class TestVideoEncoder {
         if (h264Encoder == null) {
             return;
         }
-        h264Encoder.release();
+        h264Encoder.close();
     }
 
     public boolean encodeAFrame() {

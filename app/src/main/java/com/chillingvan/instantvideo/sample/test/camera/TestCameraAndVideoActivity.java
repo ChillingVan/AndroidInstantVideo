@@ -36,6 +36,12 @@ public class TestCameraAndVideoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_and_video);
         cameraPreviewTextureView = (CameraPreviewTextureView) findViewById(R.id.camera_produce_view);
+        cameraPreviewTextureView.setOnDrawListener(new H264Encoder.OnDrawListener() {
+            @Override
+            public void onGLDraw(ICanvasGL canvasGL, SurfaceTexture surfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
+                canvasGL.drawSurfaceTexture(rawTexture, surfaceTexture, 0, 0, rawTexture.getWidth(), rawTexture.getHeight());
+            }
+        });
         instantVideoCamera = new InstantVideoCamera(Camera.CameraInfo.CAMERA_FACING_FRONT, 1280, 720);
 
     }

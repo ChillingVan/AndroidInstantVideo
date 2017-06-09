@@ -64,12 +64,12 @@ public class MediaCodecInputStream extends InputStream {
 
     @Override
     public int read(byte[] buffer, int offset, int length) throws IOException {
-        int readLength = 0;
+        int readLength;
         int encoderStatus = -1;
 
-        try {
-            if (mBuffer == null) {
-                while (!Thread.interrupted() && !mClosed) {
+        if (mBuffer == null) {
+            while (!Thread.interrupted() && !mClosed) {
+                synchronized (mMediaCodec) {
                     encoderStatus = mMediaCodec.dequeueOutputBuffer(mBufferInfo, 50000);
                     Loggers.d(TAG, "Index: " + encoderStatus + " Time: " + mBufferInfo.presentationTimeUs + " size: " + mBufferInfo.size);
                     if (encoderStatus >= 0) {
@@ -96,20 +96,17 @@ public class MediaCodecInputStream extends InputStream {
                     }
                 }
             }
+        }
 
 
-            if (mClosed) throw new IOException("This InputStream was closed");
+        if (mClosed) throw new IOException("This InputStream was closed");
 
-            readLength = length < mBufferInfo.size - mBuffer.position() ? length :
-                    mBufferInfo.size - mBuffer.position();
-            mBuffer.get(buffer, offset, readLength);
-            if (mBuffer.position() >= mBufferInfo.size) {
-                mMediaCodec.releaseOutputBuffer(encoderStatus, false);
-                mBuffer = null;
-            }
-
-        } catch (RuntimeException e) {
-            e.printStackTrace();
+        readLength = length < mBufferInfo.size - mBuffer.position() ? length :
+                mBufferInfo.size - mBuffer.position();
+        mBuffer.get(buffer, offset, readLength);
+        if (mBuffer.position() >= mBufferInfo.size) {
+            mMediaCodec.releaseOutputBuffer(encoderStatus, false);
+            mBuffer = null;
         }
 
         return readLength;
@@ -127,16 +124,8 @@ public class MediaCodecInputStream extends InputStream {
     }
 
     public static void readAll(MediaCodecInputStream is, byte[] buffer, int offset, @NonNull OnReadAllCallback onReadAllCallback) {
-        byte[] readBuf;
-        int readBufOffset;
-
-        if (is.available() > buffer.length - offset) {
-            readBuf = new byte[is.available()];
-            readBufOffset = 0;
-        } else {
-            readBuf = buffer;
-            readBufOffset = offset;
-        }
+        byte[] readBuf = buffer;
+        int readBufOffset = offset;
 
         int readSize = 0;
         do {
@@ -145,6 +134,7 @@ public class MediaCodecInputStream extends InputStream {
                 onReadAllCallback.onReadOnce(readBuf, readSize, is.getLastBufferInfo());
             } catch (IOException e) {
                 e.printStackTrace();
+                return;
             }
         } while (readSize > 0);
     }

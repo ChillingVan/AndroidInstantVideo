@@ -21,6 +21,9 @@
 package com.chillingvan.lib.muxer;
 
 import android.media.MediaCodec;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Message;
 
 import com.chillingvan.canvasgl.Loggers;
 
@@ -50,6 +53,8 @@ public class RTMPStreamMuxer implements IMuxer {
 
 
     private List<Frame> frameQueue = new LinkedList<>();
+    private Handler sendHandler;
+    private HandlerThread sendHandlerThread;
 
     public RTMPStreamMuxer() {
         this("");
@@ -58,6 +63,18 @@ public class RTMPStreamMuxer implements IMuxer {
     public RTMPStreamMuxer(String filename) {
         this.filename = filename;
         rtmpMuxer = new RTMPMuxer();
+        sendHandlerThread = new HandlerThread("send_thread");
+        sendHandlerThread.start();
+        sendHandler = new Handler(sendHandlerThread.getLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                if (msg.obj != null) {
+                    addFrame((Frame) msg.obj);
+                }
+                sendFrame(msg.arg1);
+            }
+        };
     }
 
     @Override
@@ -81,7 +98,7 @@ public class RTMPStreamMuxer implements IMuxer {
     }
 
     @Override
-    public synchronized void writeVideo(byte[] buffer, int offset, int length, MediaCodec.BufferInfo bufferInfo) {
+    public void writeVideo(byte[] buffer, int offset, int length, MediaCodec.BufferInfo bufferInfo) {
         Loggers.d("RTMPStreamMuxer", "writeVideo: ");
         if (lastVideoTime <= 0) {
             lastVideoTime = bufferInfo.presentationTimeUs;
@@ -91,14 +108,16 @@ public class RTMPStreamMuxer implements IMuxer {
         lastVideoTime = bufferInfo.presentationTimeUs;
 
         totalVideoTime += Math.abs(delta/1000);
-        addFrame(buffer, offset, length, totalVideoTime, Frame.TYPE_VIDEO);
-        sendFrame(KEEP_COUNT);
-    }
-
-    private void addFrame(byte[] buffer, int offset, int length, int time, int type) {
         byte[] frameData = new byte[length];
         System.arraycopy(buffer, offset, frameData, 0, length);
-        frameQueue.add(new Frame(frameData, time, type));
+        Message message = Message.obtain();
+        message.obj = new Frame(frameData, totalVideoTime, Frame.TYPE_VIDEO);
+        message.arg1 = KEEP_COUNT;
+        sendHandler.sendMessage(message);
+    }
+
+    private void addFrame(Frame frame) {
+        frameQueue.add(frame);
         Frame.sortFrame(frameQueue);
     }
 
@@ -116,7 +135,7 @@ public class RTMPStreamMuxer implements IMuxer {
     }
 
     @Override
-    public synchronized void writeAudio(byte[] buffer, int offset, int length, MediaCodec.BufferInfo bufferInfo) {
+    public void writeAudio(byte[] buffer, int offset, int length, MediaCodec.BufferInfo bufferInfo) {
         Loggers.d("RTMPStreamMuxer", "writeAudio: ");
         if (lastAudioTime <= 0) {
             lastAudioTime = bufferInfo.presentationTimeUs;
@@ -125,13 +144,19 @@ public class RTMPStreamMuxer implements IMuxer {
         int delta = (int) (bufferInfo.presentationTimeUs - lastAudioTime);
         lastAudioTime = bufferInfo.presentationTimeUs;
         totalAudioTime += Math.abs(delta/1000);
-        addFrame(buffer, offset, length, totalAudioTime, Frame.TYPE_AUDIO);
-        sendFrame(KEEP_COUNT);
+        byte[] frameData = new byte[length];
+        System.arraycopy(buffer, offset, frameData, 0, length);
+        Message message = Message.obtain();
+        message.obj = new Frame(frameData, totalAudioTime, Frame.TYPE_AUDIO);
+        message.arg1 = KEEP_COUNT;
+        sendHandler.sendMessage(message);
     }
 
     @Override
     public synchronized int close() {
-        sendFrame(0);
+        Message message = Message.obtain();
+        message.arg1 = 0;
+        sendHandler.sendMessage(message);
         if (!"".equals(filename)) {
             rtmpMuxer.file_close();
         }

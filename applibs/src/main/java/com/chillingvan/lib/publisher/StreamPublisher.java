@@ -55,11 +55,12 @@ public class StreamPublisher {
     private HandlerThread writeVideoHandlerThread = new HandlerThread("WriteVideoHandlerThread");
 
     private Handler writeVideoHandler;
+    private StreamPublisherParam param = new StreamPublisherParam();
 
     {
         writeVideoHandlerThread.start();
         writeVideoHandler = new Handler(writeVideoHandlerThread.getLooper()) {
-            private byte[] writeBuffer = new byte[1024 * 64];
+            private byte[] writeBuffer = new byte[param.videoBitRate/8];
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
@@ -85,7 +86,8 @@ public class StreamPublisher {
     }
 
 
-    public void prepareEncoder(StreamPublisherParam param, H264Encoder.OnDrawListener onDrawListener) {
+    public void prepareEncoder(final StreamPublisherParam param, H264Encoder.OnDrawListener onDrawListener) {
+        this.param = param;
 
         try {
             h264Encoder = new H264Encoder(param.width, param.height, param.videoBitRate, param.frameRate, param.iframeInterval, eglCtx);
@@ -93,7 +95,7 @@ public class StreamPublisher {
             h264Encoder.setOnDrawListener(onDrawListener);
             aacEncoder = new AACEncoder(param.samplingRate, param.audioBitRate);
             aacEncoder.setOnDataComingCallback(new AACEncoder.OnDataComingCallback() {
-                private byte[] writeBuffer = new byte[1024 * 64];
+                private byte[] writeBuffer = new byte[param.audioBitRate/8];
                 @Override
                 public void onComing() {
                     MediaCodecInputStream mediaCodecInputStream = aacEncoder.getMediaCodecInputStream();
@@ -134,22 +136,21 @@ public class StreamPublisher {
 
     public void stop() {
         if (h264Encoder != null) {
-            h264Encoder.stop();
+            h264Encoder.close();
         }
         if (aacEncoder != null) {
-            aacEncoder.stop();
+            aacEncoder.close();
         }
         isStart = false;
     }
 
     public void close() {
         if (h264Encoder != null) {
-            h264Encoder.stop();
-            h264Encoder.release();
+            h264Encoder.close();
         }
 
         if (aacEncoder != null) {
-            aacEncoder.stop();
+            aacEncoder.close();
         }
         muxer.close();
     }

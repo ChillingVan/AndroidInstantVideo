@@ -9,8 +9,7 @@ import com.chillingvan.canvasgl.ICanvasGL;
 import com.chillingvan.canvasgl.glcanvas.BasicTexture;
 import com.chillingvan.canvasgl.glcanvas.RawTexture;
 import com.chillingvan.canvasgl.glview.texture.GLSurfaceTextureProducerView;
-import com.chillingvan.canvasgl.textureFilter.BasicTextureFilter;
-import com.chillingvan.canvasgl.textureFilter.TextureFilter;
+import com.chillingvan.lib.encoder.video.H264Encoder;
 
 /**
  * Created by Leon on 2017/4/19.
@@ -18,7 +17,7 @@ import com.chillingvan.canvasgl.textureFilter.TextureFilter;
 
 public class CameraPreviewTextureView extends GLSurfaceTextureProducerView {
 
-    private TextureFilter textureFilter = new BasicTextureFilter();
+    private H264Encoder.OnDrawListener onDrawListener;
 
     public CameraPreviewTextureView(Context context) {
         super(context);
@@ -33,12 +32,12 @@ public class CameraPreviewTextureView extends GLSurfaceTextureProducerView {
     }
 
 
-    public void setTextureFilter(TextureFilter textureFilter) {
-        this.textureFilter = textureFilter;
-    }
-
     @Override
     protected void onGLDraw(ICanvasGL canvas, SurfaceTexture producedSurfaceTexture, RawTexture producedRawTexture, @Nullable SurfaceTexture sharedSurfaceTexture, @Nullable BasicTexture sharedTexture) {
-        canvas.drawSurfaceTexture(producedRawTexture, producedSurfaceTexture, 0, 0, producedRawTexture.getWidth(), producedRawTexture.getHeight(), textureFilter);
+        onDrawListener.onGLDraw(canvas, producedSurfaceTexture, producedRawTexture, sharedSurfaceTexture, sharedTexture);
+    }
+
+    public void setOnDrawListener(H264Encoder.OnDrawListener l) {
+        onDrawListener = l;
     }
 }

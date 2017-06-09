@@ -135,16 +135,19 @@ public class AACEncoder {
     }
 
 
-    public synchronized void stop() {
-        if (mThread == null) {
+    public synchronized void close() {
+        if (mThread == null || mThread.isInterrupted()) {
             return;
         }
         Loggers.d(TAG, "Interrupting threads...");
         mThread.interrupt();
+        mediaCodecInputStream.close();
+        synchronized (mMediaCodec) {
+            mMediaCodec.stop();
+            mMediaCodec.release();
+        }
         mAudioRecord.stop();
-    }
-
-    public void release() {
         mAudioRecord.release();
     }
+
 }

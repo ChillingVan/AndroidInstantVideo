@@ -79,7 +79,7 @@ public class TestAudioEncoder {
     public void stop() {
         isStart = false;
         if (aacEncoder != null) {
-            aacEncoder.stop();
+            aacEncoder.close();
             aacEncoder = null;
         }
     }
