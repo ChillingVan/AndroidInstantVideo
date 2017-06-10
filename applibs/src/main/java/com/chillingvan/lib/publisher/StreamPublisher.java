@@ -161,7 +161,7 @@ public class StreamPublisher {
 
     public boolean drawAFrame() {
         if (isStart) {
-            h264Encoder.requestRenderAndWait();
+            h264Encoder.requestRender();
             writeVideoHandler.sendEmptyMessage(MSG_WRITE_VIDEO);
             return true;
         }

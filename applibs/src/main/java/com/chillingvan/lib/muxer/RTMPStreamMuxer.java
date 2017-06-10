@@ -29,8 +29,6 @@ import com.chillingvan.canvasgl.Loggers;
 
 import net.butterflytv.rtmp_client.RTMPMuxer;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -54,7 +52,8 @@ public class RTMPStreamMuxer implements IMuxer {
     private int totalAudioTime;
 
 
-    private List<Frame> frameQueue = new LinkedList<>();
+    private List<FramePool.Frame> frameQueue = new LinkedList<>();
+    private FramePool framePool = new FramePool(KEEP_COUNT + 10);
     private Handler sendHandler;
 
     public RTMPStreamMuxer() {
@@ -91,7 +90,7 @@ public class RTMPStreamMuxer implements IMuxer {
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
                 if (msg.obj != null) {
-                    addFrame((Frame) msg.obj);
+                    addFrame((FramePool.Frame) msg.obj);
                 }
                 sendFrame(msg.arg1);
 
@@ -118,12 +117,10 @@ public class RTMPStreamMuxer implements IMuxer {
         lastVideoTime = bufferInfo.presentationTimeUs;
 
         totalVideoTime += Math.abs(delta/1000);
-        byte[] frameData = new byte[length];
-        System.arraycopy(buffer, offset, frameData, 0, length);
-        sendAddFrameMessage(sendHandler, new Frame(frameData, totalVideoTime, Frame.TYPE_VIDEO));
+        sendAddFrameMessage(sendHandler, framePool.obtain(buffer, offset, length, totalVideoTime, FramePool.Frame.TYPE_VIDEO));
     }
 
-    private static void sendAddFrameMessage(Handler sendHandler, Frame frame) {
+    private static void sendAddFrameMessage(Handler sendHandler, FramePool.Frame frame) {
         Message message = Message.obtain();
         message.what = MSG_ADD_FRAME;
         message.obj = frame;
@@ -131,21 +128,22 @@ public class RTMPStreamMuxer implements IMuxer {
         sendHandler.sendMessage(message);
     }
 
-    private void addFrame(Frame frame) {
+    private void addFrame(FramePool.Frame frame) {
         frameQueue.add(frame);
-        Frame.sortFrame(frameQueue);
+        FramePool.Frame.sortFrame(frameQueue);
     }
 
     private void sendFrame(int keepCount) {
         while (frameQueue.size() > keepCount) {
-            Frame sendFrame = frameQueue.remove(0);
+            FramePool.Frame sendFrame = frameQueue.remove(0);
             Loggers.i("RTMPStreamMuxer", String.format(Locale.CHINA, "sendFrame: size:%d time:%d, type:%d", sendFrame.data.length, sendFrame.timeStampMs, sendFrame.type));
             byte[] array = sendFrame.data;
-            if (sendFrame.type == Frame.TYPE_VIDEO) {
-                rtmpMuxer.writeVideo(array, 0, array.length, sendFrame.timeStampMs);
+            if (sendFrame.type == FramePool.Frame.TYPE_VIDEO) {
+                rtmpMuxer.writeVideo(array, 0, sendFrame.length, sendFrame.timeStampMs);
             } else {
-                rtmpMuxer.writeAudio(array, 0, array.length, sendFrame.timeStampMs);
+                rtmpMuxer.writeAudio(array, 0, sendFrame.length, sendFrame.timeStampMs);
             }
+            framePool.release(sendFrame);
         }
     }
 
@@ -159,9 +157,7 @@ public class RTMPStreamMuxer implements IMuxer {
         int delta = (int) (bufferInfo.presentationTimeUs - lastAudioTime);
         lastAudioTime = bufferInfo.presentationTimeUs;
         totalAudioTime += Math.abs(delta/1000);
-        byte[] frameData = new byte[length];
-        System.arraycopy(buffer, offset, frameData, 0, length);
-        sendAddFrameMessage(sendHandler, new Frame(frameData, totalAudioTime, Frame.TYPE_AUDIO));
+        sendAddFrameMessage(sendHandler, framePool.obtain(buffer, offset, length, totalAudioTime, FramePool.Frame.TYPE_AUDIO));
     }
 
     @Override
@@ -178,32 +174,4 @@ public class RTMPStreamMuxer implements IMuxer {
         sendHandler.sendMessage(message);
     }
 
-    private static class Frame {
-        public byte[] data;
-        public int timeStampMs;
-        public int type;
-        public static final int TYPE_VIDEO = 1;
-        public static final int TYPE_AUDIO = 2;
-
-        public Frame(byte[] data, int timeStampMs, int type) {
-            this.data = data;
-            this.timeStampMs = timeStampMs;
-            this.type = type;
-        }
-
-        static void sortFrame(List<Frame> frameQueue) {
-            Collections.sort(frameQueue, new Comparator<Frame>() {
-                @Override
-                public int compare(Frame left, Frame right) {
-                    if (left.timeStampMs < right.timeStampMs) {
-                        return -1;
-                    } else if (left.timeStampMs == right.timeStampMs) {
-                        return 0;
-                    } else {
-                        return 1;
-                    }
-                }
-            });
-        }
-    }
 }
