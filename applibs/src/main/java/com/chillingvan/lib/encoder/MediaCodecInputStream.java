@@ -71,7 +71,7 @@ public class MediaCodecInputStream extends InputStream {
             while (!Thread.interrupted() && !mClosed) {
                 synchronized (mMediaCodec) {
                     if (mClosed) return 0;
-                    encoderStatus = mMediaCodec.dequeueOutputBuffer(mBufferInfo, 50000);
+                    encoderStatus = mMediaCodec.dequeueOutputBuffer(mBufferInfo, 110000);
                     Loggers.d(TAG, "Index: " + encoderStatus + " Time: " + mBufferInfo.presentationTimeUs + " size: " + mBufferInfo.size);
                     if (encoderStatus >= 0) {
                         if (Build.VERSION.SDK_INT >= 21) {
@@ -124,14 +124,13 @@ public class MediaCodecInputStream extends InputStream {
         return mBufferInfo;
     }
 
-    public static void readAll(MediaCodecInputStream is, byte[] buffer, int offset, @NonNull OnReadAllCallback onReadAllCallback) {
+    public static void readAll(MediaCodecInputStream is, byte[] buffer, @NonNull OnReadAllCallback onReadAllCallback) {
         byte[] readBuf = buffer;
-        int readBufOffset = offset;
 
         int readSize = 0;
         do {
             try {
-                readSize = is.read(readBuf, readBufOffset, readBuf.length);
+                readSize = is.read(readBuf, 0, readBuf.length);
                 onReadAllCallback.onReadOnce(readBuf, readSize, is.getLastBufferInfo());
             } catch (IOException e) {
                 e.printStackTrace();

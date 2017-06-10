@@ -29,7 +29,7 @@ allprojects {
 
 // module build.gradle
 dependencies {
-    compile 'com.github.ChillingVan:AndroidInstantVideo:v1.0.0.0'
+    compile 'com.github.ChillingVan:AndroidInstantVideo:v1.0.1.0'
 }
 ```
 

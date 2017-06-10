@@ -90,7 +90,7 @@ public class TestAudioEncoder {
 
     public void write() {
         MediaCodecInputStream mediaCodecInputStream = aacEncoder.getMediaCodecInputStream();
-        MediaCodecInputStream.readAll(mediaCodecInputStream, writeBuffer, 0, new MediaCodecInputStream.OnReadAllCallback() {
+        MediaCodecInputStream.readAll(mediaCodecInputStream, writeBuffer, new MediaCodecInputStream.OnReadAllCallback() {
             boolean shouldAddPacketHeader = true;
             byte[] header = new byte[7];
             @Override

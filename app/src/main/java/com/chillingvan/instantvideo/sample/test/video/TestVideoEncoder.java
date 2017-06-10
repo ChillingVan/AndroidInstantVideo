@@ -128,7 +128,7 @@ public class TestVideoEncoder {
 
     public void write() {
         MediaCodecInputStream mediaCodecInputStream = h264Encoder.getMediaCodecInputStream();
-        MediaCodecInputStream.readAll(mediaCodecInputStream, writeBuffer, 0, new MediaCodecInputStream.OnReadAllCallback() {
+        MediaCodecInputStream.readAll(mediaCodecInputStream, writeBuffer, new MediaCodecInputStream.OnReadAllCallback() {
             @Override
             public void onReadOnce(byte[] buffer, int readSize, MediaCodec.BufferInfo bufferInfo) {
                 Loggers.d("TestVideoEncoder", String.format("onReadOnce: readSize:%d", readSize));

@@ -108,7 +108,6 @@ public class RTMPStreamMuxer implements IMuxer {
 
     @Override
     public void writeVideo(byte[] buffer, int offset, int length, MediaCodec.BufferInfo bufferInfo) {
-        Loggers.d("RTMPStreamMuxer", "writeVideo: ");
         if (lastVideoTime <= 0) {
             lastVideoTime = bufferInfo.presentationTimeUs;
         }
@@ -116,7 +115,8 @@ public class RTMPStreamMuxer implements IMuxer {
         int delta = (int) (bufferInfo.presentationTimeUs - lastVideoTime);
         lastVideoTime = bufferInfo.presentationTimeUs;
 
-        totalVideoTime += Math.abs(delta/1000);
+        totalVideoTime += Math.abs(delta / 1000);
+        Loggers.d("RTMPStreamMuxer", "writeVideo: " + " time:" + totalVideoTime + " offset:" + offset + " length:" + length);
         sendAddFrameMessage(sendHandler, framePool.obtain(buffer, offset, length, totalVideoTime, FramePool.Frame.TYPE_VIDEO));
     }
 
@@ -136,7 +136,7 @@ public class RTMPStreamMuxer implements IMuxer {
     private void sendFrame(int keepCount) {
         while (frameQueue.size() > keepCount) {
             FramePool.Frame sendFrame = frameQueue.remove(0);
-            Loggers.i("RTMPStreamMuxer", String.format(Locale.CHINA, "sendFrame: size:%d time:%d, type:%d", sendFrame.data.length, sendFrame.timeStampMs, sendFrame.type));
+            Loggers.i("RTMPStreamMuxer", String.format(Locale.CHINA, "sendFrame: size:%d time:%d, type:%d", sendFrame.length, sendFrame.timeStampMs, sendFrame.type));
             byte[] array = sendFrame.data;
             if (sendFrame.type == FramePool.Frame.TYPE_VIDEO) {
                 rtmpMuxer.writeVideo(array, 0, sendFrame.length, sendFrame.timeStampMs);
@@ -156,7 +156,7 @@ public class RTMPStreamMuxer implements IMuxer {
 
         int delta = (int) (bufferInfo.presentationTimeUs - lastAudioTime);
         lastAudioTime = bufferInfo.presentationTimeUs;
-        totalAudioTime += Math.abs(delta/1000);
+        totalAudioTime += Math.abs(delta / 1000);
         sendAddFrameMessage(sendHandler, framePool.obtain(buffer, offset, length, totalAudioTime, FramePool.Frame.TYPE_AUDIO));
     }
 

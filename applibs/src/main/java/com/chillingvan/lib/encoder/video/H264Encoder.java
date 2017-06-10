@@ -64,9 +64,9 @@ public class H264Encoder {
      *
      * @param width width
      * @param height height
-     * @param bitRate bitRate default 500000
-     * @param frameRate frameRate default 20
-     * @param iframeInterval iframeInterval default 1
+     * @param bitRate bitRate
+     * @param frameRate frameRate
+     * @param iframeInterval iframeInterval
      * @param eglCtx can be EGL10.EGL_NO_CONTEXT or outside context
      * @throws IOException
      */

@@ -79,7 +79,7 @@ public class StreamPublisher {
                 @Override
                 public void onComing() {
                     MediaCodecInputStream mediaCodecInputStream = aacEncoder.getMediaCodecInputStream();
-                    MediaCodecInputStream.readAll(mediaCodecInputStream, writeBuffer, 0, new MediaCodecInputStream.OnReadAllCallback() {
+                    MediaCodecInputStream.readAll(mediaCodecInputStream, writeBuffer, new MediaCodecInputStream.OnReadAllCallback() {
                         @Override
                         public void onReadOnce(byte[] buffer, int readSize, MediaCodec.BufferInfo bufferInfo) {
                             if (readSize <= 0) {
@@ -98,18 +98,19 @@ public class StreamPublisher {
         writeVideoHandlerThread = new HandlerThread("WriteVideoHandlerThread");
         writeVideoHandlerThread.start();
         writeVideoHandler = new Handler(writeVideoHandlerThread.getLooper()) {
-            private byte[] writeBuffer = new byte[param.videoBitRate/8];
+            private byte[] writeBuffer = new byte[param.videoBitRate/8/2];
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
                 if (msg.what == MSG_WRITE_VIDEO) {
                     MediaCodecInputStream mediaCodecInputStream = h264Encoder.getMediaCodecInputStream();
-                    MediaCodecInputStream.readAll(mediaCodecInputStream, writeBuffer, 0, new MediaCodecInputStream.OnReadAllCallback() {
+                    MediaCodecInputStream.readAll(mediaCodecInputStream, writeBuffer, new MediaCodecInputStream.OnReadAllCallback() {
                         @Override
                         public void onReadOnce(byte[] buffer, int readSize, MediaCodec.BufferInfo bufferInfo) {
                             if (readSize <= 0) {
                                 return;
                             }
+                            Loggers.d("StreamPublisher", String.format("onReadOnce: %d", readSize));
                             muxer.writeVideo(buffer, 0, readSize, bufferInfo);
                         }
                     });

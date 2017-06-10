@@ -36,39 +36,41 @@
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginLeft="8dp"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginBottom="8dp"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:onClick="clickStartTest"
-        app:layout_constraintHorizontal_bias="0.971"
-        app:layout_constraintVertical_bias="0.498"/>
+        app:layout_constraintHorizontal_bias="0.972"
+        app:layout_constraintTop_toBottomOf="@+id/camera_produce_view"
+        />
 
 
     <com.chillingvan.instantvideo.sample.test.camera.CameraPreviewTextureView
         android:id="@+id/camera_produce_view"
-        android:layout_width="wrap_content"
-        android:layout_height="200dp"
+        android:layout_width="0dp"
+        android:layout_height="250dp"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="16dp"
         android:layout_marginLeft="8dp"
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginRight="8dp"
         app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/test_camera_button"/>
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"/>
 
     <EditText
         android:id="@+id/ip_input_test"
-        android:layout_width="262dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="rtmp://192.168.0.143:19305/live/room"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="3dp"
+        android:text="rtmp://192.168.137.1:19305/live/room"
         android:hint="rtmp://192.168.1.139:19305/live/room"
-        app:layout_constraintTop_toTopOf="@+id/test_camera_button"
-        app:layout_constraintRight_toLeftOf="@+id/test_camera_button"/>
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="@+id/camera_produce_view"
+        app:layout_constraintRight_toLeftOf="@+id/test_camera_button"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="0dp"
+        app:layout_constraintTop_toBottomOf="@+id/camera_produce_view"/>
 
 </android.support.constraint.ConstraintLayout>

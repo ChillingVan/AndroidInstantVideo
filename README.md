@@ -27,7 +27,7 @@ allprojects {
 
 // module build.gradle
 dependencies {
-    compile 'com.github.ChillingVan:AndroidInstantVideo:v1.0.0.0'
+    compile 'com.github.ChillingVan:AndroidInstantVideo:v1.0.1.0'
 }
 ```
 
@@ -95,6 +95,7 @@ public class TestVideoEncoder {
 
   需要测试的话，请自行搭建RTMP服务器。我用的是自己搭建的Nginx服务器，用的Module是[nginx-rtmp-module](https://github.com/arut/nginx-rtmp-module)。搭建服务器不需要写代码，根据教程敲几行命令就行。
   可以用开源直播软件[OBS](https://obsproject.com/)对比播放效果。播放器用各种都行，VLC，PotPlayer，ffplay都可以。我用的是ffplay，注意，因为只是简单的服务器，所以要先开播放器连接后再开始启动推流。
+  例如我使用的命令是：.\ffplay.exe "rtmp://localhost:19305/live/room live=1"
   
   可以看例子[TestCameraPublisherActivity](https://github.com/ChillingVan/AndroidInstantVideo/blob/master/app/src/main/java/com/chillingvan/instantvideo/sample/test/publisher/TestCameraPublisherActivity.java)
 ```java
