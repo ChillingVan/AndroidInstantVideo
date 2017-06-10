@@ -145,6 +145,7 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
             streamPublisher.closeAll();
             textView.setText("START");
         } else {
+            streamPublisher.resumeCamera();
             handler.sendEmptyMessage(1);
             textView.setText("STOP");
         }

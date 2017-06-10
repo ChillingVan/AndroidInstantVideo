@@ -111,7 +111,7 @@ public class InstantVideoCamera implements CameraInterface {
 
     @Override
     public void release() {
-        if (camera != null) {
+        if (isOpened) {
             camera.stopPreview();
             camera.release();
             camera = null;

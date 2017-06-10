@@ -79,6 +79,8 @@ public class CameraStreamPublisher {
     }
 
     public void resumeCamera() {
+        if (instantVideoCamera.isOpened()) return;
+
         instantVideoCamera.openCamera();
         initCameraTexture();
         cameraPreviewTextureView.onResume();
@@ -89,6 +91,8 @@ public class CameraStreamPublisher {
     }
 
     public void pauseCamera() {
+        if (!instantVideoCamera.isOpened()) return;
+
         instantVideoCamera.release();
         cameraPreviewTextureView.onPause();
     }
@@ -100,6 +104,5 @@ public class CameraStreamPublisher {
 
     public void closeAll() {
         streamPublisher.close();
-        pauseCamera();
     }
 }
