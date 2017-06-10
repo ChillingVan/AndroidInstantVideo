@@ -49,6 +49,7 @@ public class AACEncoder {
     private OnDataComingCallback onDataComingCallback;
     private int samplingRate;
     private final int bufferSize;
+    private boolean isStart;
 
     public AACEncoder(final int samplingRate, int bitRate) throws IOException {
         this.samplingRate = samplingRate;
@@ -74,9 +75,10 @@ public class AACEncoder {
         mThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                int len = 0, bufferIndex = 0;
-                try {
-                    while (!Thread.interrupted()) {
+                int len, bufferIndex;
+                while (isStart && !Thread.interrupted()) {
+                    synchronized (mMediaCodec) {
+                        if (!isStart) return;
                         bufferIndex = mMediaCodec.dequeueInputBuffer(10000);
                         if (bufferIndex >= 0) {
                             inputBuffers[bufferIndex].clear();
@@ -95,13 +97,12 @@ public class AACEncoder {
                             }
                         }
                     }
-                } catch (RuntimeException e) {
-                    e.printStackTrace();
                 }
             }
         });
 
         mThread.start();
+        isStart = true;
     }
 
 
@@ -136,10 +137,11 @@ public class AACEncoder {
 
 
     public synchronized void close() {
-        if (mThread == null || mThread.isInterrupted()) {
+        if (!isStart) {
             return;
         }
         Loggers.d(TAG, "Interrupting threads...");
+        isStart = false;
         mThread.interrupt();
         mediaCodecInputStream.close();
         synchronized (mMediaCodec) {

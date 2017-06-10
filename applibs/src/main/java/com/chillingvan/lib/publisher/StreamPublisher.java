@@ -52,32 +52,12 @@ public class StreamPublisher {
     private H264Encoder h264Encoder;
     private boolean isStart;
 
-    private HandlerThread writeVideoHandlerThread = new HandlerThread("WriteVideoHandlerThread");
+    private HandlerThread writeVideoHandlerThread;
 
     private Handler writeVideoHandler;
     private StreamPublisherParam param = new StreamPublisherParam();
 
     {
-        writeVideoHandlerThread.start();
-        writeVideoHandler = new Handler(writeVideoHandlerThread.getLooper()) {
-            private byte[] writeBuffer = new byte[param.videoBitRate/8];
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-                if (msg.what == MSG_WRITE_VIDEO) {
-                    MediaCodecInputStream mediaCodecInputStream = h264Encoder.getMediaCodecInputStream();
-                    MediaCodecInputStream.readAll(mediaCodecInputStream, writeBuffer, 0, new MediaCodecInputStream.OnReadAllCallback() {
-                        @Override
-                        public void onReadOnce(byte[] buffer, int readSize, MediaCodec.BufferInfo bufferInfo) {
-                            if (readSize <= 0) {
-                                return;
-                            }
-                            muxer.writeVideo(buffer, 0, readSize, bufferInfo);
-                        }
-                    });
-                }
-            }
-        };
     }
 
     public StreamPublisher(EglContextWrapper eglCtx, IMuxer muxer) {
@@ -114,6 +94,28 @@ public class StreamPublisher {
         } catch (IOException | IllegalStateException e) {
             e.printStackTrace();
         }
+
+        writeVideoHandlerThread = new HandlerThread("WriteVideoHandlerThread");
+        writeVideoHandlerThread.start();
+        writeVideoHandler = new Handler(writeVideoHandlerThread.getLooper()) {
+            private byte[] writeBuffer = new byte[param.videoBitRate/8];
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                if (msg.what == MSG_WRITE_VIDEO) {
+                    MediaCodecInputStream mediaCodecInputStream = h264Encoder.getMediaCodecInputStream();
+                    MediaCodecInputStream.readAll(mediaCodecInputStream, writeBuffer, 0, new MediaCodecInputStream.OnReadAllCallback() {
+                        @Override
+                        public void onReadOnce(byte[] buffer, int readSize, MediaCodec.BufferInfo bufferInfo) {
+                            if (readSize <= 0) {
+                                return;
+                            }
+                            muxer.writeVideo(buffer, 0, readSize, bufferInfo);
+                        }
+                    });
+                }
+            }
+        };
     }
 
     public void setSharedTexture(BasicTexture outsideTexture, SurfaceTexture outsideSurfaceTexture) {
@@ -132,19 +134,11 @@ public class StreamPublisher {
             aacEncoder.start();
             isStart = true;
         }
-    }
 
-    public void stop() {
-        if (h264Encoder != null) {
-            h264Encoder.close();
-        }
-        if (aacEncoder != null) {
-            aacEncoder.close();
-        }
-        isStart = false;
     }
 
     public void close() {
+        isStart = false;
         if (h264Encoder != null) {
             h264Encoder.close();
         }
@@ -152,7 +146,12 @@ public class StreamPublisher {
         if (aacEncoder != null) {
             aacEncoder.close();
         }
-        muxer.close();
+        if (writeVideoHandlerThread != null) {
+            writeVideoHandlerThread.quitSafely();
+        }
+        if (muxer != null) {
+            muxer.close();
+        }
     }
 
     public boolean isStart() {

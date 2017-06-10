@@ -36,7 +36,7 @@ import com.chillingvan.canvasgl.ICanvasGL;
 import com.chillingvan.canvasgl.Loggers;
 import com.chillingvan.canvasgl.glcanvas.BasicTexture;
 import com.chillingvan.canvasgl.glcanvas.RawTexture;
-import com.chillingvan.canvasgl.textureFilter.ContrastFilter;
+import com.chillingvan.canvasgl.textureFilter.BasicTextureFilter;
 import com.chillingvan.canvasgl.textureFilter.DirectionalSobelEdgeDetectionFilter;
 import com.chillingvan.canvasgl.textureFilter.HueFilter;
 import com.chillingvan.canvasgl.textureFilter.SaturationFilter;
@@ -58,6 +58,7 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
     private InstantVideoCamera instantVideoCamera;
     private Handler handler;
     private EditText addrEditText;
+    private HandlerThread handlerThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,15 +72,17 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
             }
         });
         addrEditText = (EditText) findViewById(R.id.ip_input_test);
-        instantVideoCamera = new InstantVideoCamera(Camera.CameraInfo.CAMERA_FACING_FRONT, 1280, 720);
+        instantVideoCamera = new InstantVideoCamera(Camera.CameraInfo.CAMERA_FACING_FRONT, 640, 480);
+//        instantVideoCamera = new InstantVideoCamera(Camera.CameraInfo.CAMERA_FACING_FRONT, 1280, 720);
 
-        HandlerThread handlerThread = new HandlerThread("StreamPublisherOpen");
+        handlerThread = new HandlerThread("StreamPublisherOpen");
         handlerThread.start();
         handler = new Handler(handlerThread.getLooper()) {
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
-                StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam(1280, 720, 322560 * 4, 30, 5, 44100, 19200);
+                StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam();
+//                StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam(1280, 720, 322560 * 4, 30, 5, 44100, 19200);
                 streamPublisher.prepareEncoder(streamPublisherParam, new H264Encoder.OnDrawListener() {
                     @Override
                     public void onGLDraw(ICanvasGL canvasGL, SurfaceTexture surfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
@@ -95,22 +98,24 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
             }
         };
 
-//        streamPublisher = new CameraStreamPublisher(new RTMPStreamMuxer(), cameraPreviewTextureView, instantVideoCamera);
-        String filename = getExternalFilesDir(null) + "/test_flv_encode.flv";
-        streamPublisher = new CameraStreamPublisher(new RTMPStreamMuxer(filename), cameraPreviewTextureView, instantVideoCamera);
+        streamPublisher = new CameraStreamPublisher(new RTMPStreamMuxer(), cameraPreviewTextureView, instantVideoCamera);
+//        String filename = getExternalFilesDir(null) + "/test_flv_encode.flv";
+//        streamPublisher = new CameraStreamPublisher(new RTMPStreamMuxer(filename), cameraPreviewTextureView, instantVideoCamera);
     }
 
     private void drawVideoFrame(ICanvasGL canvasGL, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
         // Here you can do video process
         // 此处可以视频处理，例如加水印等等
-        TextureFilter textureFilterLT = new ContrastFilter(2.0f);
+        TextureFilter textureFilterLT = new BasicTextureFilter();
         TextureFilter textureFilterRT = new HueFilter(180);
         TextureFilter textureFilterLB = new SaturationFilter(1.5f);
         TextureFilter textureFilterRB = new DirectionalSobelEdgeDetectionFilter(2.0f);
-        canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, 0, outsideTexture.getWidth()/2, outsideTexture.getHeight()/2, textureFilterLT);
-        canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, outsideTexture.getWidth()/2, 0, outsideTexture.getWidth(), outsideTexture.getHeight()/2, textureFilterRT);
-        canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, outsideTexture.getHeight()/2, outsideTexture.getWidth()/2, outsideTexture.getHeight(), textureFilterLB);
-        canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, outsideTexture.getWidth()/2, outsideTexture.getHeight()/2, outsideTexture.getWidth(), outsideTexture.getHeight(), textureFilterRB);
+        int width = outsideTexture.getWidth();
+        int height = outsideTexture.getHeight();
+        canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, 0, width /2, height /2, textureFilterLT);
+        canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, width /2, 0, width, height /2, textureFilterRT);
+        canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, height /2, width /2, height, textureFilterLB);
+        canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, width /2, height /2, width, height, textureFilterRB);
     }
 
     @Override
@@ -123,18 +128,21 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         streamPublisher.pauseCamera();
+        if (streamPublisher.isStart()) {
+            streamPublisher.closeAll();
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        streamPublisher.closeAll();
+        handlerThread.quitSafely();
     }
 
     public void clickStartTest(View view) {
         TextView textView = (TextView) view;
         if (streamPublisher.isStart()) {
-            streamPublisher.stopPublish();
+            streamPublisher.closeAll();
             textView.setText("START");
         } else {
             handler.sendEmptyMessage(1);

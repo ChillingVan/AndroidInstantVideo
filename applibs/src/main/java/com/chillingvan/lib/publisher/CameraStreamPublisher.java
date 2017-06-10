@@ -97,9 +97,6 @@ public class CameraStreamPublisher {
         streamPublisher.start(url, width, height);
     }
 
-    public void stopPublish() {
-        streamPublisher.stop();
-    }
 
     public void closeAll() {
         streamPublisher.close();

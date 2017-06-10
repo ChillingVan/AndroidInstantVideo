@@ -70,6 +70,7 @@ public class MediaCodecInputStream extends InputStream {
         if (mBuffer == null) {
             while (!Thread.interrupted() && !mClosed) {
                 synchronized (mMediaCodec) {
+                    if (mClosed) return 0;
                     encoderStatus = mMediaCodec.dequeueOutputBuffer(mBufferInfo, 50000);
                     Loggers.d(TAG, "Index: " + encoderStatus + " Time: " + mBufferInfo.presentationTimeUs + " size: " + mBufferInfo.size);
                     if (encoderStatus >= 0) {

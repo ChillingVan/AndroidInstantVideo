@@ -43,6 +43,8 @@ public class RTMPStreamMuxer implements IMuxer {
 
 
     public static final int KEEP_COUNT = 30;
+    public static final int MESSAGE_READY_TO_CLOSE = 4;
+    public static final int MSG_ADD_FRAME = 3;
     private String filename = "";
     private RTMPMuxer rtmpMuxer;
 
@@ -54,7 +56,6 @@ public class RTMPStreamMuxer implements IMuxer {
 
     private List<Frame> frameQueue = new LinkedList<>();
     private Handler sendHandler;
-    private HandlerThread sendHandlerThread;
 
     public RTMPStreamMuxer() {
         this("");
@@ -63,18 +64,6 @@ public class RTMPStreamMuxer implements IMuxer {
     public RTMPStreamMuxer(String filename) {
         this.filename = filename;
         rtmpMuxer = new RTMPMuxer();
-        sendHandlerThread = new HandlerThread("send_thread");
-        sendHandlerThread.start();
-        sendHandler = new Handler(sendHandlerThread.getLooper()) {
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-                if (msg.obj != null) {
-                    addFrame((Frame) msg.obj);
-                }
-                sendFrame(msg.arg1);
-            }
-        };
     }
 
     @Override
@@ -94,6 +83,27 @@ public class RTMPStreamMuxer implements IMuxer {
             rtmpMuxer.file_open(filename);
             rtmpMuxer.write_flv_header(true, true);
         }
+
+        final HandlerThread sendHandlerThread = new HandlerThread("send_thread");
+        sendHandlerThread.start();
+        sendHandler = new Handler(sendHandlerThread.getLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                if (msg.obj != null) {
+                    addFrame((Frame) msg.obj);
+                }
+                sendFrame(msg.arg1);
+
+                if (msg.what == MESSAGE_READY_TO_CLOSE) {
+                    if (!"".equals(filename)) {
+                        rtmpMuxer.file_close();
+                    }
+                    rtmpMuxer.close();
+                    sendHandlerThread.quitSafely();
+                }
+            }
+        };
         return connected;
     }
 
@@ -110,8 +120,13 @@ public class RTMPStreamMuxer implements IMuxer {
         totalVideoTime += Math.abs(delta/1000);
         byte[] frameData = new byte[length];
         System.arraycopy(buffer, offset, frameData, 0, length);
+        sendAddFrameMessage(sendHandler, new Frame(frameData, totalVideoTime, Frame.TYPE_VIDEO));
+    }
+
+    private static void sendAddFrameMessage(Handler sendHandler, Frame frame) {
         Message message = Message.obtain();
-        message.obj = new Frame(frameData, totalVideoTime, Frame.TYPE_VIDEO);
+        message.what = MSG_ADD_FRAME;
+        message.obj = frame;
         message.arg1 = KEEP_COUNT;
         sendHandler.sendMessage(message);
     }
@@ -122,7 +137,7 @@ public class RTMPStreamMuxer implements IMuxer {
     }
 
     private void sendFrame(int keepCount) {
-        while (frameQueue.size() >= keepCount) {
+        while (frameQueue.size() > keepCount) {
             Frame sendFrame = frameQueue.remove(0);
             Loggers.i("RTMPStreamMuxer", String.format(Locale.CHINA, "sendFrame: size:%d time:%d, type:%d", sendFrame.data.length, sendFrame.timeStampMs, sendFrame.type));
             byte[] array = sendFrame.data;
@@ -146,21 +161,21 @@ public class RTMPStreamMuxer implements IMuxer {
         totalAudioTime += Math.abs(delta/1000);
         byte[] frameData = new byte[length];
         System.arraycopy(buffer, offset, frameData, 0, length);
-        Message message = Message.obtain();
-        message.obj = new Frame(frameData, totalAudioTime, Frame.TYPE_AUDIO);
-        message.arg1 = KEEP_COUNT;
-        sendHandler.sendMessage(message);
+        sendAddFrameMessage(sendHandler, new Frame(frameData, totalAudioTime, Frame.TYPE_AUDIO));
     }
 
     @Override
     public synchronized int close() {
+        sendCloseMessage(sendHandler);
+
+        return 0;
+    }
+
+    private static void sendCloseMessage(Handler sendHandler) {
         Message message = Message.obtain();
         message.arg1 = 0;
+        message.what = MESSAGE_READY_TO_CLOSE;
         sendHandler.sendMessage(message);
-        if (!"".equals(filename)) {
-            rtmpMuxer.file_close();
-        }
-        return rtmpMuxer.close();
     }
 
     private static class Frame {
