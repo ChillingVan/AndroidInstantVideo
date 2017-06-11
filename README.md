@@ -149,6 +149,10 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
 添加了功能发出 Pull Request 的话，希望能在sample的module里添加相应的测试代码，最好在文件开头加上自己的license注释。
 
 
+### 相关博文
+
+[使用MediaCodec和RTMP做直播推流](http://www.jianshu.com/p/3c479c0f4876)
+
 ## License
     Copyright 2017 ChillingVan.
 
@@ -163,3 +167,11 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+    
+    
+### 打赏
+感谢您的支持！！
+支付宝
+![alipay](http://upload-images.jianshu.io/upload_images/3587192-1cc20071ce4a042a.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+微信
+![wechat pay](http://upload-images.jianshu.io/upload_images/3587192-3289f8237d98b2c4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
