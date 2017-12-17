@@ -18,11 +18,25 @@
  *
  */
 
-package com.chillingvan.lib.encoder.audio.packetlizer;
+package com.chillingvan.lib.muxer;
+
+import android.os.Handler;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
- * Created by Chilling on 2017/2/4.
+ * Created by Chilling on 2017/12/17.
  */
 
-public class AACADTSPaketLizer {
+public class FrameSender {
+
+    public static final int KEEP_COUNT = 30;
+
+    private Handler sendHandler;
+    private List<FramePool.Frame> frameQueue = new LinkedList<>();
+    private FramePool framePool = new FramePool(KEEP_COUNT + 10);
+
+    public FrameSender() {
+    }
 }

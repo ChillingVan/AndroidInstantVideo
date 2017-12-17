@@ -33,7 +33,9 @@ import com.chillingvan.lib.muxer.IMuxer;
 import java.io.IOException;
 
 /**
- * Created by Chilling on 2017/5/28.
+ * Data Stream:
+ * Camera -> SurfaceTexture of GLSurfaceTextureProducerView -> Surface of MediaCodec -> encode data(byte[]) -> RTMPMuxer -> Server
+ *
  */
 
 public class CameraStreamPublisher {
@@ -97,8 +99,8 @@ public class CameraStreamPublisher {
         cameraPreviewTextureView.onPause();
     }
 
-    public void startPublish(String url, int width, int height) throws IOException {
-        streamPublisher.start(url, width, height);
+    public void startPublish() throws IOException {
+        streamPublisher.start();
     }
 
 

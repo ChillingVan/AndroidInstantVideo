@@ -70,6 +70,8 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
             }
         });
         addrEditText = (EditText) findViewById(R.id.ip_input_test);
+
+
         instantVideoCamera = new InstantVideoCamera(Camera.CameraInfo.CAMERA_FACING_FRONT, 640, 480);
 //        instantVideoCamera = new InstantVideoCamera(Camera.CameraInfo.CAMERA_FACING_FRONT, 1280, 720);
 
@@ -82,6 +84,8 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
 //                StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam();
 //                StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam(1080, 640, 9500 * 1000, 30, 1, 44100, 19200);
                 StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam(540, 750, 1500 * 1000, 30, 1, 44100, 19200);
+                streamPublisherParam.outputFilePath = getExternalFilesDir(null) + "/test_flv_encode.flv";
+//                streamPublisherParam.outputFilePath = getExternalFilesDir(null) + "/test_mp4_encode.mp4";
                 streamPublisher.prepareEncoder(streamPublisherParam, new H264Encoder.OnDrawListener() {
                     @Override
                     public void onGLDraw(ICanvasGL canvasGL, SurfaceTexture surfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
@@ -91,16 +95,17 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
                     }
                 });
                 try {
-                    streamPublisher.startPublish(addrEditText.getText().toString(), streamPublisherParam.width, streamPublisherParam.height);
+                    streamPublisherParam.outputUrl = addrEditText.getText().toString();
+                    streamPublisher.startPublish();
                 } catch (IOException e) {
                     e.printStackTrace();
+                    ((TextView)findViewById(R.id.test_camera_button)).setText("START");
                 }
             }
         };
 
-//        streamPublisher = new CameraStreamPublisher(new RTMPStreamMuxer(), cameraPreviewTextureView, instantVideoCamera);
-        String filename = getExternalFilesDir(null) + "/test_flv_encode.flv";
-        streamPublisher = new CameraStreamPublisher(new RTMPStreamMuxer(filename), cameraPreviewTextureView, instantVideoCamera);
+        streamPublisher = new CameraStreamPublisher(new RTMPStreamMuxer(), cameraPreviewTextureView, instantVideoCamera);
+//        streamPublisher = new CameraStreamPublisher(new MP4Muxer(), cameraPreviewTextureView, instantVideoCamera);
     }
 
     private void drawVideoFrame(ICanvasGL canvasGL, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {

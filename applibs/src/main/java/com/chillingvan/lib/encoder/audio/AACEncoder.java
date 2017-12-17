@@ -23,19 +23,19 @@ package com.chillingvan.lib.encoder.audio;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaCodec;
-import android.media.MediaCodecInfo;
-import android.media.MediaFormat;
 import android.media.MediaRecorder;
 import android.util.Log;
 
 import com.chillingvan.canvasgl.Loggers;
 import com.chillingvan.lib.encoder.MediaCodecInputStream;
+import com.chillingvan.lib.publisher.StreamPublisher;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Created by Chilling on 2017/1/11.
+ * Data Stream:
+ * MIC -> AudioRecord -> voice data(byte[]) -> MediaCodec -> encode data(byte[])
  */
 
 public class AACEncoder {
@@ -51,16 +51,12 @@ public class AACEncoder {
     private final int bufferSize;
     private boolean isStart;
 
-    public AACEncoder(final int samplingRate, int bitRate) throws IOException {
-        this.samplingRate = samplingRate;
+    public AACEncoder(StreamPublisher.StreamPublisherParam params) throws IOException {
+        this.samplingRate = params.samplingRate;
 
-        bufferSize = AudioRecord.getMinBufferSize(samplingRate, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT) * 2;
-        mMediaCodec = MediaCodec.createEncoderByType("audio/mp4a-latm");
-        MediaFormat format = MediaFormat.createAudioFormat("audio/mp4a-latm", samplingRate, 2);
-        format.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
-        format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
-        format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, bufferSize);
-        mMediaCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+        bufferSize = params.audioBufferSize;
+        mMediaCodec = MediaCodec.createEncoderByType(params.audioMIME);
+        mMediaCodec.configure(params.createAudioMediaFormat(), null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
 
         mediaCodecInputStream = new MediaCodecInputStream(mMediaCodec);
         mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, samplingRate, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT, bufferSize);

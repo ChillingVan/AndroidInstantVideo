@@ -21,7 +21,11 @@
 package com.chillingvan.lib.publisher;
 
 import android.graphics.SurfaceTexture;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaFormat;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
@@ -37,9 +41,13 @@ import com.chillingvan.lib.muxer.IMuxer;
 import java.io.IOException;
 
 /**
- * Created by Chilling on 2017/5/21.
+ * Data Stream: <br>
+ * Video: <br>
+ * ... Something that can draw things on Surface(Original Surface) - > The shared Surface Texture
+ * -> The surface of MediaCodec -> encode data(byte[]) -> RTMPMuxer -> Server
+ * Audio: <br>
+ * MIC -> AudioRecord -> voice data(byte[]) -> MediaCodec -> encode data(byte[]) -> RTMPMuxer -> Server
  */
-
 public class StreamPublisher {
 
     public static final int MSG_OPEN = 1;
@@ -70,12 +78,13 @@ public class StreamPublisher {
         this.param = param;
 
         try {
-            h264Encoder = new H264Encoder(param.width, param.height, param.videoBitRate, param.frameRate, param.iframeInterval, eglCtx);
+            h264Encoder = new H264Encoder(param, eglCtx);
             h264Encoder.setSharedTexture(outsideTexture, outsideSurfaceTexture);
             h264Encoder.setOnDrawListener(onDrawListener);
-            aacEncoder = new AACEncoder(param.samplingRate, param.audioBitRate);
+            aacEncoder = new AACEncoder(param);
             aacEncoder.setOnDataComingCallback(new AACEncoder.OnDataComingCallback() {
-                private byte[] writeBuffer = new byte[param.audioBitRate/8];
+                private byte[] writeBuffer = new byte[param.audioBitRate / 8];
+
                 @Override
                 public void onComing() {
                     MediaCodecInputStream mediaCodecInputStream = aacEncoder.getMediaCodecInputStream();
@@ -98,7 +107,8 @@ public class StreamPublisher {
         writeVideoHandlerThread = new HandlerThread("WriteVideoHandlerThread");
         writeVideoHandlerThread.start();
         writeVideoHandler = new Handler(writeVideoHandlerThread.getLooper()) {
-            private byte[] writeBuffer = new byte[param.videoBitRate/8/2];
+            private byte[] writeBuffer = new byte[param.videoBitRate / 8 / 2];
+
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
@@ -125,9 +135,9 @@ public class StreamPublisher {
     }
 
 
-    public void start(String url, int width, int height) throws IOException {
+    public void start() throws IOException {
         if (!isStart) {
-            if (muxer.open(url, width, height) < 0) {
+            if (muxer.open(param) <= 0) {
                 Loggers.e("StreamPublisher", "muxer open fail");
                 throw new IOException("muxer open fail");
             }
@@ -178,10 +188,19 @@ public class StreamPublisher {
         public int samplingRate = 44100;
         public int audioBitRate = 192000;
 
+        public String videoMIMEType = "video/avc";
+        public String audioMIME = "audio/mp4a-latm";
+        public int audioBufferSize;
+
+        public String outputFilePath;
+        public String outputUrl;
+
         public StreamPublisherParam() {
+            this(640, 480, 2949120, 30, 5, 44100, 192000);
         }
 
-        public StreamPublisherParam(int width, int height, int videoBitRate, int frameRate, int iframeInterval, int samplingRate, int audioBitRate) {
+        public StreamPublisherParam(int width, int height, int videoBitRate, int frameRate,
+                                    int iframeInterval, int samplingRate, int audioBitRate) {
             this.width = width;
             this.height = height;
             this.videoBitRate = videoBitRate;
@@ -189,6 +208,30 @@ public class StreamPublisher {
             this.iframeInterval = iframeInterval;
             this.samplingRate = samplingRate;
             this.audioBitRate = audioBitRate;
+            audioBufferSize = AudioRecord.getMinBufferSize(samplingRate, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT) * 2;
+        }
+
+
+        public MediaFormat createVideoMediaFormat() {
+            MediaFormat format = MediaFormat.createVideoFormat(videoMIMEType, width, height);
+
+            // Set some properties.  Failing to specify some of these can cause the MediaCodec
+            // configure() call to throw an unhelpful exception.
+            format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
+                    MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+            format.setInteger(MediaFormat.KEY_BIT_RATE, videoBitRate);
+            format.setInteger(MediaFormat.KEY_FRAME_RATE, frameRate);
+            format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iframeInterval);
+            return format;
+        }
+
+        public MediaFormat createAudioMediaFormat() {
+            MediaFormat format = MediaFormat.createAudioFormat(audioMIME, samplingRate, 2);
+            format.setInteger(MediaFormat.KEY_BIT_RATE, audioBitRate);
+            format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+            format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, audioBufferSize);
+
+            return format;
         }
     }
 

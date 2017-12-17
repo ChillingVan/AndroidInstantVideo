@@ -23,6 +23,10 @@ import com.chillingvan.instantvideo.sample.test.video.TestVideoEncoder;
 import com.chillingvan.lib.camera.InstantVideoCamera;
 import com.chillingvan.lib.encoder.video.H264Encoder;
 
+/**
+ * Data Stream:
+ * Camera -> SurfaceTexture -> Surface -> MediaCodec -> encode data(byte[]) -> File
+ */
 public class TestCameraAndVideoActivity extends AppCompatActivity {
 
     private TestVideoEncoder testVideoEncoder;

@@ -34,6 +34,7 @@ import com.chillingvan.canvasgl.glcanvas.GLPaint;
 import com.chillingvan.canvasgl.glview.texture.gles.EglContextWrapper;
 import com.chillingvan.lib.encoder.MediaCodecInputStream;
 import com.chillingvan.lib.encoder.video.H264Encoder;
+import com.chillingvan.lib.publisher.StreamPublisher;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -69,7 +70,7 @@ public class TestVideoEncoder {
 
     public void prepareEncoder(H264Encoder.OnDrawListener onDrawListener) {
         try {
-            h264Encoder = new H264Encoder(640, 480, 2949120, 30, 5, eglCtx);
+            h264Encoder = new H264Encoder(new StreamPublisher.StreamPublisherParam(), eglCtx);
             h264Encoder.setSharedTexture(outsideTexture, outsideSurfaceTexture);
             h264Encoder.setOnDrawListener(onDrawListener);
         } catch (IOException | IllegalStateException e) {

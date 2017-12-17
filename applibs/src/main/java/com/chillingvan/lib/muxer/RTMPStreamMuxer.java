@@ -24,8 +24,10 @@ import android.media.MediaCodec;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.text.TextUtils;
 
 import com.chillingvan.canvasgl.Loggers;
+import com.chillingvan.lib.publisher.StreamPublisher;
 
 import net.butterflytv.rtmp_client.RTMPMuxer;
 
@@ -43,7 +45,6 @@ public class RTMPStreamMuxer implements IMuxer {
     public static final int KEEP_COUNT = 30;
     public static final int MESSAGE_READY_TO_CLOSE = 4;
     public static final int MSG_ADD_FRAME = 3;
-    private String filename = "";
     private RTMPMuxer rtmpMuxer;
 
     private long lastVideoTime;
@@ -57,29 +58,35 @@ public class RTMPStreamMuxer implements IMuxer {
     private Handler sendHandler;
 
     public RTMPStreamMuxer() {
-        this("");
     }
 
-    public RTMPStreamMuxer(String filename) {
-        this.filename = filename;
-        rtmpMuxer = new RTMPMuxer();
-    }
 
+    /**
+     *
+     * @return 1 if it is connected
+     * 0 if it is not connected
+     */
     @Override
-    public synchronized int open(String url, int videoWidth, int videoHeight) {
+    public synchronized int open(final StreamPublisher.StreamPublisherParam params) {
         lastVideoTime = -1;
         lastAudioTime = -1;
         totalVideoTime = 0;
         totalAudioTime = 0;
 
-        int open = rtmpMuxer.open(url, videoWidth, videoHeight);
+        if (TextUtils.isEmpty(params.outputUrl)) {
+            throw new IllegalArgumentException("Param outputUrl is empty");
+        }
+
+        rtmpMuxer = new RTMPMuxer();
+        // -2 Url format error; -3 Connect error.
+        int open = rtmpMuxer.open(params.outputUrl, params.width, params.height);
         Loggers.d("RTMPStreamMuxer", String.format(Locale.CHINA, "open: open: %d", open));
         int connected = rtmpMuxer.isConnected();
         Loggers.d("RTMPStreamMuxer", String.format(Locale.CHINA, "open: isConnected: %d", connected));
 
-        Loggers.d("RTMPStreamMuxer", String.format("open: %s", url));
-        if (!"".equals(filename)) {
-            rtmpMuxer.file_open(filename);
+        Loggers.d("RTMPStreamMuxer", String.format("open: %s", params.outputUrl));
+        if (!TextUtils.isEmpty(params.outputFilePath)) {
+            rtmpMuxer.file_open(params.outputFilePath);
             rtmpMuxer.write_flv_header(true, true);
         }
 
@@ -95,10 +102,13 @@ public class RTMPStreamMuxer implements IMuxer {
                 sendFrame(msg.arg1);
 
                 if (msg.what == MESSAGE_READY_TO_CLOSE) {
-                    if (!"".equals(filename)) {
-                        rtmpMuxer.file_close();
+                    if (rtmpMuxer != null) {
+                        if (!TextUtils.isEmpty(params.outputFilePath)) {
+                            rtmpMuxer.file_close();
+                        }
+                        rtmpMuxer.close();
+                        rtmpMuxer = null;
                     }
-                    rtmpMuxer.close();
                     sendHandlerThread.quitSafely();
                 }
             }

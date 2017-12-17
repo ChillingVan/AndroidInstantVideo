@@ -34,13 +34,16 @@ import com.chillingvan.canvasgl.glcanvas.BasicTexture;
 import com.chillingvan.canvasgl.glcanvas.RawTexture;
 import com.chillingvan.canvasgl.glview.texture.gles.EglContextWrapper;
 import com.chillingvan.lib.encoder.MediaCodecInputStream;
+import com.chillingvan.lib.publisher.StreamPublisher;
 
 import java.io.IOException;
 
 /**
- * Created by Chilling on 2016/12/11.
+ * Data Stream:
+ *
+ * The texture of {@link H264Encoder#setSharedTexture} -> Surface of MediaCodec -> encode data(byte[])
+ *
  */
-
 public class H264Encoder {
 
     private final Surface mInputSurface;
@@ -55,39 +58,33 @@ public class H264Encoder {
     private boolean isStart;
 
 
-    public H264Encoder(int width, int height, int bitRate, int frameRate, int iframeInterval) throws IOException {
-        this(width, height, bitRate, frameRate, iframeInterval, EglContextWrapper.EGL_NO_CONTEXT_WRAPPER);
+    public H264Encoder(StreamPublisher.StreamPublisherParam params) throws IOException {
+        this(params, EglContextWrapper.EGL_NO_CONTEXT_WRAPPER);
     }
 
 
     /**
      *
-     * @param width width
-     * @param height height
-     * @param bitRate bitRate
-     * @param frameRate frameRate
-     * @param iframeInterval iframeInterval
      * @param eglCtx can be EGL10.EGL_NO_CONTEXT or outside context
-     * @throws IOException
      */
-    public H264Encoder(int width, int height, int bitRate, int frameRate, int iframeInterval, final EglContextWrapper eglCtx) throws IOException {
+    public H264Encoder(StreamPublisher.StreamPublisherParam params, final EglContextWrapper eglCtx) throws IOException {
 
-        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, width, height);
+        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, params.width, params.height);
 
         // Set some properties.  Failing to specify some of these can cause the MediaCodec
         // configure() call to throw an unhelpful exception.
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
                 MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
-        format.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
-        format.setInteger(MediaFormat.KEY_FRAME_RATE, frameRate);
-        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iframeInterval);
+        format.setInteger(MediaFormat.KEY_BIT_RATE, params.videoBitRate);
+        format.setInteger(MediaFormat.KEY_FRAME_RATE, params.frameRate);
+        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, params.iframeInterval);
         mEncoder = MediaCodec.createEncoderByType(MIME_TYPE);
         mEncoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         mInputSurface = mEncoder.createInputSurface();
         mEncoder.start();
         mediaCodecInputStream = new MediaCodecInputStream(mEncoder);
 
-        offScreenCanvas = new EncoderCanvas(width, height, eglCtx);
+        offScreenCanvas = new EncoderCanvas(params.width, params.height, eglCtx);
     }
 
     /**

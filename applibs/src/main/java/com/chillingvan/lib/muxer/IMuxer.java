@@ -22,13 +22,15 @@ package com.chillingvan.lib.muxer;
 
 import android.media.MediaCodec;
 
+import com.chillingvan.lib.publisher.StreamPublisher;
+
 /**
  * Created by Chilling on 2017/5/21.
  */
 
 public interface IMuxer {
 
-    int open(String url, int videoWidth, int videoHeight);
+    int open(StreamPublisher.StreamPublisherParam params);
 
     void writeVideo(byte[] buffer, int offset, int length, MediaCodec.BufferInfo bufferInfo);
 

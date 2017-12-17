@@ -26,6 +26,7 @@ import android.media.MediaCodec;
 import com.chillingvan.canvasgl.Loggers;
 import com.chillingvan.lib.encoder.MediaCodecInputStream;
 import com.chillingvan.lib.encoder.audio.AACEncoder;
+import com.chillingvan.lib.publisher.StreamPublisher;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -56,7 +57,8 @@ public class TestAudioEncoder {
 
     public void prepareEncoder() {
         try {
-            aacEncoder = new AACEncoder(44100, 192000);
+            StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam();
+            aacEncoder = new AACEncoder(streamPublisherParam);
             aacEncoder.setOnDataComingCallback(new AACEncoder.OnDataComingCallback() {
                 @Override
                 public void onComing() {
