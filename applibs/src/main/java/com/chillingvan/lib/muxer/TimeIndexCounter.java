@@ -20,26 +20,29 @@
 
 package com.chillingvan.lib.muxer;
 
-import android.media.MediaCodec;
-
-import com.chillingvan.lib.publisher.StreamPublisher;
-
 /**
- * Created by Chilling on 2017/5/21.
+ * Created by Chilling on 2017/12/23.
  */
 
-public interface IMuxer {
+public class TimeIndexCounter {
+    private long lastTimeUs;
+    private int timeIndex;
 
-    /**
-     *
-     * @return 1 if it is connected
-     * 0 if it is not connected
-     */
-    int open(StreamPublisher.StreamPublisherParam params);
+    public void calcTotalTime(long currentTimeUs) {
+        if (lastTimeUs <= 0) {
+            this.lastTimeUs = currentTimeUs;
+        }
+        int delta = (int) (currentTimeUs - lastTimeUs);
+        this.lastTimeUs = currentTimeUs;
+        timeIndex += Math.abs(delta / 1000);
+    }
 
-    void writeVideo(byte[] buffer, int offset, int length, MediaCodec.BufferInfo bufferInfo);
+    public void reset() {
+        lastTimeUs = 0;
+        timeIndex = 0;
+    }
 
-    void writeAudio(byte[] buffer, int offset, int length, MediaCodec.BufferInfo bufferInfo);
-
-    int close();
+    public int getTimeIndex() {
+        return timeIndex;
+    }
 }

@@ -23,6 +23,7 @@ package com.chillingvan.lib.muxer;
 import android.media.MediaCodec;
 import android.media.MediaMuxer;
 
+import com.chillingvan.canvasgl.Loggers;
 import com.chillingvan.lib.publisher.StreamPublisher;
 
 import java.io.IOException;
@@ -32,46 +33,82 @@ import java.nio.ByteBuffer;
  * Created by Chilling on 2017/12/17.
  */
 
-public class MP4Muxer implements IMuxer {
+public class MP4Muxer extends BaseMuxer {
+    private static final String TAG = "MP4Muxer";
 
     private MediaMuxer mMuxer;
     private int videoTrackIndex;
     private int audioTrackIndex;
+    private FrameSender frameSender;
+
+
 
     public MP4Muxer() {
+        super();
     }
 
     @Override
     public int open(StreamPublisher.StreamPublisherParam params) {
+        super.open(params);
         try {
             mMuxer = new MediaMuxer(params.outputFilePath,
                     MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
         } catch (IOException e) {
             e.printStackTrace();
-            return -1;
+            return 0;
         }
         videoTrackIndex = mMuxer.addTrack(params.createVideoMediaFormat());
         audioTrackIndex = mMuxer.addTrack(params.createAudioMediaFormat());
         mMuxer.start();
-        return 0;
+
+        frameSender = new FrameSender(new FrameSender.FrameSenderCallback(){
+
+
+            @Override
+            public void onSendVideo(FramePool.Frame sendFrame) {
+
+                mMuxer.writeSampleData(videoTrackIndex, ByteBuffer.wrap(sendFrame.data, 0, sendFrame.length), sendFrame.bufferInfo.getBufferInfo());
+            }
+
+            @Override
+            public void onSendAudio(FramePool.Frame sendFrame) {
+                mMuxer.writeSampleData(audioTrackIndex, ByteBuffer.wrap(sendFrame.data, 0, sendFrame.length), sendFrame.bufferInfo.getBufferInfo());
+            }
+
+            @Override
+            public void close() {
+
+                if (mMuxer != null) {
+                    mMuxer.stop();
+                    mMuxer.release();
+                    mMuxer = null;
+                }
+            }
+        });
+
+
+        return 1;
     }
 
     @Override
     public void writeVideo(byte[] buffer, int offset, int length, MediaCodec.BufferInfo bufferInfo) {
-        mMuxer.writeSampleData(videoTrackIndex, ByteBuffer.wrap(buffer, offset, length), bufferInfo);
+        super.writeVideo(buffer, offset, length, bufferInfo);
+
+        Loggers.d(TAG, "writeVideo: " + " offset:" + offset + " length:" + length);
+        frameSender.sendAddFrameMessage(buffer, offset, length, new BufferInfoEx(bufferInfo, videoTimeIndexCounter.getTimeIndex()), FramePool.Frame.TYPE_VIDEO);
     }
 
     @Override
     public void writeAudio(byte[] buffer, int offset, int length, MediaCodec.BufferInfo bufferInfo) {
-        mMuxer.writeSampleData(audioTrackIndex, ByteBuffer.wrap(buffer, offset, length), bufferInfo);
+        super.writeAudio(buffer, offset, length, bufferInfo);
+        Loggers.d(TAG, "writeAudio: ");
+        frameSender.sendAddFrameMessage(buffer, offset, length, new BufferInfoEx(bufferInfo, audioTimeIndexCounter.getTimeIndex()), FramePool.Frame.TYPE_AUDIO);
     }
 
     @Override
     public int close() {
-        if (mMuxer != null) {
-            mMuxer.stop();
-            mMuxer.release();
-            mMuxer = null;
+        if (frameSender != null) {
+            frameSender.sendCloseMessage();
         }
         return 0;
     }

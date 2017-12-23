@@ -37,12 +37,12 @@ public class FramePool {
         frameItemsPool = new ItemsPool<>(poolSize);
     }
 
-    public Frame obtain(byte[] data, int offset, int length, int timeStampMs, int type) {
+    public Frame obtain(byte[] data, int offset, int length, BufferInfoEx bufferInfo, int type) {
         Frame frame = frameItemsPool.acquire();
         if (frame == null) {
-            frame = new Frame(data, offset, length, timeStampMs, type);
+            frame = new Frame(data, offset, length, bufferInfo, type);
         } else {
-            frame.set(data, offset, length, timeStampMs, type);
+            frame.set(data, offset, length, bufferInfo, type);
         }
         return frame;
     }
@@ -110,20 +110,20 @@ public class FramePool {
     public static class Frame {
         public byte[] data;
         public int length;
-        public int timeStampMs;
+        public BufferInfoEx bufferInfo;
         public int type;
         public static final int TYPE_VIDEO = 1;
         public static final int TYPE_AUDIO = 2;
 
-        public Frame(byte[] data, int offset, int length, int timeStampMs, int type) {
+        public Frame(byte[] data, int offset, int length, BufferInfoEx bufferInfo, int type) {
             this.data = new byte[length];
             System.arraycopy(data, offset, this.data, 0, length);
             this.length = length;
-            this.timeStampMs = timeStampMs;
+            this.bufferInfo = bufferInfo;
             this.type = type;
         }
 
-        public void set(byte[] data, int offset, int length, int timeStampMs, int type) {
+        public void set(byte[] data, int offset, int length, BufferInfoEx bufferInfo, int type) {
             if (this.data.length < length) {
                 this.data = new byte[length];
             }
@@ -131,7 +131,7 @@ public class FramePool {
             System.arraycopy(data, offset, this.data, 0, length);
 
             this.length = length;
-            this.timeStampMs = timeStampMs;
+            this.bufferInfo = bufferInfo;
             this.type = type;
         }
 
@@ -139,9 +139,9 @@ public class FramePool {
             Collections.sort(frameQueue, new Comparator<Frame>() {
                 @Override
                 public int compare(Frame left, Frame right) {
-                    if (left.timeStampMs < right.timeStampMs) {
+                    if (left.bufferInfo.getTotalTime() < right.bufferInfo.getTotalTime()) {
                         return -1;
-                    } else if (left.timeStampMs == right.timeStampMs) {
+                    } else if (left.bufferInfo.getTotalTime() == right.bufferInfo.getTotalTime()) {
                         return 0;
                     } else {
                         return 1;
