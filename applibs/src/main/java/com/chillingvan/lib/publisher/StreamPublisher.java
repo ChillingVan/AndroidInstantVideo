@@ -63,7 +63,7 @@ public class StreamPublisher {
     private HandlerThread writeVideoHandlerThread;
 
     private Handler writeVideoHandler;
-    private StreamPublisherParam param = new StreamPublisherParam();
+    private StreamPublisherParam param;
 
     {
     }
@@ -194,6 +194,8 @@ public class StreamPublisher {
 
         public String outputFilePath;
         public String outputUrl;
+        private MediaFormat videoOutputMediaFormat;
+        private MediaFormat audioOutputMediaFormat;
 
         public StreamPublisherParam() {
             this(640, 480, 2949120, 30, 5, 44100, 192000);
@@ -232,6 +234,22 @@ public class StreamPublisher {
             format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, audioBufferSize);
 
             return format;
+        }
+
+        public void setVideoOutputMediaFormat(MediaFormat videoOutputMediaFormat) {
+            this.videoOutputMediaFormat = videoOutputMediaFormat;
+        }
+
+        public void setAudioOutputMediaFormat(MediaFormat audioOutputMediaFormat) {
+            this.audioOutputMediaFormat = audioOutputMediaFormat;
+        }
+
+        public MediaFormat getVideoOutputMediaFormat() {
+            return videoOutputMediaFormat;
+        }
+
+        public MediaFormat getAudioOutputMediaFormat() {
+            return audioOutputMediaFormat;
         }
     }
 

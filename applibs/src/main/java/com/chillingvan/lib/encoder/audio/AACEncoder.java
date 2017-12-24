@@ -23,6 +23,7 @@ package com.chillingvan.lib.encoder.audio;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaCodec;
+import android.media.MediaFormat;
 import android.media.MediaRecorder;
 import android.util.Log;
 
@@ -51,14 +52,18 @@ public class AACEncoder {
     private final int bufferSize;
     private boolean isStart;
 
-    public AACEncoder(StreamPublisher.StreamPublisherParam params) throws IOException {
+    public AACEncoder(final StreamPublisher.StreamPublisherParam params) throws IOException {
         this.samplingRate = params.samplingRate;
 
         bufferSize = params.audioBufferSize;
         mMediaCodec = MediaCodec.createEncoderByType(params.audioMIME);
         mMediaCodec.configure(params.createAudioMediaFormat(), null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
-
-        mediaCodecInputStream = new MediaCodecInputStream(mMediaCodec);
+        mediaCodecInputStream = new MediaCodecInputStream(mMediaCodec, new MediaCodecInputStream.MediaFormatCallback() {
+            @Override
+            public void onChangeMediaFormat(MediaFormat mediaFormat) {
+                params.setAudioOutputMediaFormat(mediaFormat);
+            }
+        });
         mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, samplingRate, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT, bufferSize);
 
     }

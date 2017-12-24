@@ -29,7 +29,7 @@ allprojects {
 
 // module build.gradle
 dependencies {
-    compile 'com.github.ChillingVan:AndroidInstantVideo:v1.0.1.0'
+    compile 'com.github.ChillingVan:AndroidInstantVideo:v1.0.2.0'
 }
 ```
 
@@ -137,11 +137,13 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
 }
 ```
 
+### Latest Update:
+1. Add Mp4Muxer(Use Android MediaMuxer). Sample: TestMp4MuxerActivity
+2. Update Interface Imuxer. Add more parameters to StreamPublisherParam. 
+
 ### TODO
 
-1. Android Default Muxer. Please implement IMuxer
-
-2. RTSP Stream.
+1. RTSP Stream.
 
 ###  Pull Request
 

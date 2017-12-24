@@ -67,9 +67,11 @@ public class H264Encoder {
      *
      * @param eglCtx can be EGL10.EGL_NO_CONTEXT or outside context
      */
-    public H264Encoder(StreamPublisher.StreamPublisherParam params, final EglContextWrapper eglCtx) throws IOException {
+    public H264Encoder(final StreamPublisher.StreamPublisherParam params, final EglContextWrapper eglCtx) throws IOException {
 
-        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, params.width, params.height);
+//        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, params.width, params.height);
+        MediaFormat format = params.createVideoMediaFormat();
+
 
         // Set some properties.  Failing to specify some of these can cause the MediaCodec
         // configure() call to throw an unhelpful exception.
@@ -78,11 +80,16 @@ public class H264Encoder {
         format.setInteger(MediaFormat.KEY_BIT_RATE, params.videoBitRate);
         format.setInteger(MediaFormat.KEY_FRAME_RATE, params.frameRate);
         format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, params.iframeInterval);
-        mEncoder = MediaCodec.createEncoderByType(MIME_TYPE);
+        mEncoder = MediaCodec.createEncoderByType(params.videoMIMEType);
         mEncoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         mInputSurface = mEncoder.createInputSurface();
         mEncoder.start();
-        mediaCodecInputStream = new MediaCodecInputStream(mEncoder);
+        mediaCodecInputStream = new MediaCodecInputStream(mEncoder, new MediaCodecInputStream.MediaFormatCallback() {
+            @Override
+            public void onChangeMediaFormat(MediaFormat mediaFormat) {
+                params.setVideoOutputMediaFormat(mediaFormat);
+            }
+        });
 
         offScreenCanvas = new EncoderCanvas(params.width, params.height, eglCtx);
     }

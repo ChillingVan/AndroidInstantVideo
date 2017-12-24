@@ -27,7 +27,7 @@ allprojects {
 
 // module build.gradle
 dependencies {
-    compile 'com.github.ChillingVan:AndroidInstantVideo:v1.0.1.0'
+    compile 'com.github.ChillingVan:AndroidInstantVideo:v1.0.2.0'
 }
 ```
 
@@ -137,11 +137,13 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
 }
 ```
 
+### 最近更新
+1. 添加使用Android MediaMuxer的 Mp4Muxer，输出Mp4文件。例子 TestMp4MuxerActivity
+2. 修改 IMuxer 接口，使之更通用。给StreamPublisherParam添加更多参数。
+
 ### TODO
 
-1. 使用Android的muxer将h264和aac结合生成mp4文件, 最好实现 IMuxer 接口
-
-2. RTSP流
+1. RTSP流
 
 ### 关于 Pull Request
 

@@ -59,16 +59,24 @@
         </activity>
         <activity
             android:name=".test.camera.TestCameraAndVideoActivity"
-            android:label="TestCameraAndVideoActivity"
-            >
+            android:label="TestCameraAndVideoActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="com.chillingvan.instantvideo.sample"/>
             </intent-filter>
         </activity>
-        <activity android:name=".test.publisher.TestCameraPublisherActivity"
-                  android:label="TestCameraPublisherActivity"
+        <activity
+            android:name=".test.publisher.TestCameraPublisherActivity"
+            android:label="TestCameraPublisherActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="com.chillingvan.instantvideo.sample"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".test.publisher.TestMp4MuxerActivity"
+                  android:label="TestMp4MuxerActivity"
             >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

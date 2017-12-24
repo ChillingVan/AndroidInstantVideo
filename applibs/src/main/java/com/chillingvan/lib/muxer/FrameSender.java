@@ -36,6 +36,7 @@ public class FrameSender {
     private static final int KEEP_COUNT = 30;
     private static final int MESSAGE_READY_TO_CLOSE = 4;
     private static final int MSG_ADD_FRAME = 3;
+    private static final int MSG_START = 2;
 
     private Handler sendHandler;
     private List<FramePool.Frame> frameQueue = new LinkedList<>();
@@ -51,14 +52,22 @@ public class FrameSender {
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
-                if (msg.obj != null) {
-                    addFrame((FramePool.Frame) msg.obj);
-                }
-                sendFrame(msg.arg1);
 
                 if (msg.what == MESSAGE_READY_TO_CLOSE) {
+                    if (msg.obj != null) {
+                        addFrame((FramePool.Frame) msg.obj);
+                    }
+                    sendFrame(msg.arg1);
+
                     frameSenderCallback.close();
                     sendHandlerThread.quitSafely();
+                } else if (msg.what == MSG_ADD_FRAME) {
+                    if (msg.obj != null) {
+                        addFrame((FramePool.Frame) msg.obj);
+                    }
+                    sendFrame(msg.arg1);
+                } else if (msg.what == MSG_START) {
+                    frameSenderCallback.onStart();
                 }
             }
         };
@@ -82,6 +91,12 @@ public class FrameSender {
         }
     }
 
+    public void sendStartMessage() {
+        Message message = Message.obtain();
+        message.what = MSG_START;
+        sendHandler.sendMessage(message);
+    }
+
     public void sendAddFrameMessage(byte[] data, int offset, int length, BufferInfoEx bufferInfo, int type) {
         FramePool.Frame frame = framePool.obtain(data, offset, length, bufferInfo, type);
         Message message = Message.obtain();
@@ -99,8 +114,10 @@ public class FrameSender {
     }
 
     public interface FrameSenderCallback {
+        void onStart();
         void onSendVideo(FramePool.Frame sendFrame);
         void onSendAudio(FramePool.Frame sendFrame);
         void close();
+
     }
 }

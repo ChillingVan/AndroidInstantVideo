@@ -73,6 +73,9 @@ public class RTMPStreamMuxer extends BaseMuxer {
 
         frameSender = new FrameSender(new FrameSender.FrameSenderCallback() {
             @Override
+            public void onStart() {}
+
+            @Override
             public void onSendVideo(FramePool.Frame sendFrame) {
 
                 rtmpMuxer.writeVideo(sendFrame.data, 0, sendFrame.length, sendFrame.bufferInfo.getTotalTime());
@@ -96,7 +99,7 @@ public class RTMPStreamMuxer extends BaseMuxer {
 
             }
         });
-
+        frameSender.sendStartMessage();
         return connected;
     }
 

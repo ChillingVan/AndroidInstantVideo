@@ -117,22 +117,24 @@ public class FramePool {
 
         public Frame(byte[] data, int offset, int length, BufferInfoEx bufferInfo, int type) {
             this.data = new byte[length];
-            System.arraycopy(data, offset, this.data, 0, length);
-            this.length = length;
-            this.bufferInfo = bufferInfo;
-            this.type = type;
+            init(data, offset, length, bufferInfo, type);
         }
 
         public void set(byte[] data, int offset, int length, BufferInfoEx bufferInfo, int type) {
             if (this.data.length < length) {
                 this.data = new byte[length];
             }
+            init(data, offset, length, bufferInfo, type);
+        }
 
+        private void init(byte[] data, int offset, int length, BufferInfoEx bufferInfo, int type) {
             System.arraycopy(data, offset, this.data, 0, length);
-
             this.length = length;
             this.bufferInfo = bufferInfo;
             this.type = type;
+            bufferInfo.getBufferInfo().size = length;
+            bufferInfo.getBufferInfo().offset = 0;
+            bufferInfo.getBufferInfo().presentationTimeUs = bufferInfo.getTotalTime() * 1000;
         }
 
         public static void sortFrame(List<Frame> frameQueue) {

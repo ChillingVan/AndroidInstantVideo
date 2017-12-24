@@ -40,6 +40,7 @@ public class MediaCodecInputStream extends InputStream {
     public final String TAG = "MediaCodecInputStream";
 
     private MediaCodec mMediaCodec = null;
+    private MediaFormatCallback mediaFormatCallback;
     private BufferInfo mBufferInfo = new BufferInfo();
     private ByteBuffer mBuffer = null;
     private boolean mClosed = false;
@@ -47,8 +48,9 @@ public class MediaCodecInputStream extends InputStream {
     public MediaFormat mMediaFormat;
     private ByteBuffer[] encoderOutputBuffers;
 
-    public MediaCodecInputStream(MediaCodec mediaCodec) {
+    public MediaCodecInputStream(MediaCodec mediaCodec, MediaFormatCallback mediaFormatCallback) {
         mMediaCodec = mediaCodec;
+        this.mediaFormatCallback = mediaFormatCallback;
     }
 
     @Override
@@ -83,6 +85,9 @@ public class MediaCodecInputStream extends InputStream {
                         break;
                     } else if (encoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                         mMediaFormat = mMediaCodec.getOutputFormat();
+                        if (mediaFormatCallback != null) {
+                            mediaFormatCallback.onChangeMediaFormat(mMediaFormat);
+                        }
                         Log.i(TAG, mMediaFormat.toString());
                     } else if (encoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER) {
                         Log.v(TAG, "No buffer available...");
@@ -131,7 +136,7 @@ public class MediaCodecInputStream extends InputStream {
         do {
             try {
                 readSize = is.read(readBuf, 0, readBuf.length);
-                onReadAllCallback.onReadOnce(readBuf, readSize, is.getLastBufferInfo());
+                onReadAllCallback.onReadOnce(readBuf, readSize, copyBufferInfo(is.getLastBufferInfo()));
             } catch (IOException e) {
                 e.printStackTrace();
                 return;
@@ -139,7 +144,21 @@ public class MediaCodecInputStream extends InputStream {
         } while (readSize > 0);
     }
 
+    @NonNull
+    private static BufferInfo copyBufferInfo(BufferInfo lastBufferInfo) {
+        BufferInfo bufferInfo = new BufferInfo();
+        bufferInfo.presentationTimeUs = lastBufferInfo.presentationTimeUs;
+        bufferInfo.flags = lastBufferInfo.flags;
+        bufferInfo.offset = lastBufferInfo.offset;
+        bufferInfo.size = lastBufferInfo.size;
+        return bufferInfo;
+    }
+
     public interface OnReadAllCallback {
         void onReadOnce(byte[] buffer, int readSize, BufferInfo mediaBufferSize);
+    }
+
+    public interface MediaFormatCallback {
+        void onChangeMediaFormat(MediaFormat mediaFormat);
     }
 }
