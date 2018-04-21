@@ -23,7 +23,7 @@ package com.chillingvan.lib.muxer;
 import android.media.MediaCodec;
 import android.text.TextUtils;
 
-import com.chillingvan.canvasgl.Loggers;
+import com.chillingvan.canvasgl.util.Loggers;
 import com.chillingvan.lib.publisher.StreamPublisher;
 
 import net.butterflytv.rtmp_client.RTMPMuxer;

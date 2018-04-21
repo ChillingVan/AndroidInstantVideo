@@ -24,7 +24,7 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 
-import com.chillingvan.canvasgl.Loggers;
+import com.chillingvan.canvasgl.util.Loggers;
 import com.chillingvan.lib.publisher.StreamPublisher;
 
 import java.io.IOException;

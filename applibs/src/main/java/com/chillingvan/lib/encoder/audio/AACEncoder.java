@@ -27,7 +27,7 @@ import android.media.MediaFormat;
 import android.media.MediaRecorder;
 import android.util.Log;
 
-import com.chillingvan.canvasgl.Loggers;
+import com.chillingvan.canvasgl.util.Loggers;
 import com.chillingvan.lib.encoder.MediaCodecInputStream;
 import com.chillingvan.lib.publisher.StreamPublisher;
 

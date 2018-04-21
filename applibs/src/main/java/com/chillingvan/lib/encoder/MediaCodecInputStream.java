@@ -28,7 +28,7 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.chillingvan.canvasgl.Loggers;
+import com.chillingvan.canvasgl.util.Loggers;
 
 import java.io.IOException;
 import java.io.InputStream;

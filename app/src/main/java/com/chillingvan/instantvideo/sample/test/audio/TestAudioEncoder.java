@@ -23,7 +23,7 @@ package com.chillingvan.instantvideo.sample.test.audio;
 import android.content.Context;
 import android.media.MediaCodec;
 
-import com.chillingvan.canvasgl.Loggers;
+import com.chillingvan.canvasgl.util.Loggers;
 import com.chillingvan.lib.encoder.MediaCodecInputStream;
 import com.chillingvan.lib.encoder.audio.AACEncoder;
 import com.chillingvan.lib.publisher.StreamPublisher;

@@ -30,9 +30,9 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 
-import com.chillingvan.canvasgl.Loggers;
 import com.chillingvan.canvasgl.glcanvas.BasicTexture;
 import com.chillingvan.canvasgl.glview.texture.gles.EglContextWrapper;
+import com.chillingvan.canvasgl.util.Loggers;
 import com.chillingvan.lib.encoder.MediaCodecInputStream;
 import com.chillingvan.lib.encoder.audio.AACEncoder;
 import com.chillingvan.lib.encoder.video.H264Encoder;

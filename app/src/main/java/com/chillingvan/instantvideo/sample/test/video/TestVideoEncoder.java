@@ -28,10 +28,10 @@ import android.media.MediaCodec;
 import android.util.Log;
 
 import com.chillingvan.canvasgl.ICanvasGL;
-import com.chillingvan.canvasgl.Loggers;
 import com.chillingvan.canvasgl.glcanvas.BasicTexture;
 import com.chillingvan.canvasgl.glcanvas.GLPaint;
 import com.chillingvan.canvasgl.glview.texture.gles.EglContextWrapper;
+import com.chillingvan.canvasgl.util.Loggers;
 import com.chillingvan.lib.encoder.MediaCodecInputStream;
 import com.chillingvan.lib.encoder.video.H264Encoder;
 import com.chillingvan.lib.publisher.StreamPublisher;

@@ -28,11 +28,11 @@ import android.support.annotation.Nullable;
 import android.view.Surface;
 
 import com.chillingvan.canvasgl.ICanvasGL;
-import com.chillingvan.canvasgl.Loggers;
 import com.chillingvan.canvasgl.OffScreenCanvas;
 import com.chillingvan.canvasgl.glcanvas.BasicTexture;
 import com.chillingvan.canvasgl.glcanvas.RawTexture;
 import com.chillingvan.canvasgl.glview.texture.gles.EglContextWrapper;
+import com.chillingvan.canvasgl.util.Loggers;
 import com.chillingvan.lib.encoder.MediaCodecInputStream;
 import com.chillingvan.lib.publisher.StreamPublisher;
 

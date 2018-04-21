@@ -32,12 +32,12 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.chillingvan.canvasgl.ICanvasGL;
-import com.chillingvan.canvasgl.Loggers;
 import com.chillingvan.canvasgl.glcanvas.BasicTexture;
 import com.chillingvan.canvasgl.glcanvas.RawTexture;
 import com.chillingvan.canvasgl.textureFilter.BasicTextureFilter;
 import com.chillingvan.canvasgl.textureFilter.HueFilter;
 import com.chillingvan.canvasgl.textureFilter.TextureFilter;
+import com.chillingvan.canvasgl.util.Loggers;
 import com.chillingvan.instantvideo.sample.R;
 import com.chillingvan.instantvideo.sample.test.camera.CameraPreviewTextureView;
 import com.chillingvan.lib.camera.InstantVideoCamera;
