@@ -45,6 +45,7 @@ public class CameraStreamPublisher {
     private IMuxer muxer;
     private GLMultiTexProducerView cameraPreviewTextureView;
     private CameraInterface instantVideoCamera;
+    private OnSurfacesCreatedListener onSurfacesCreatedListener;
 
     public CameraStreamPublisher(IMuxer muxer, GLMultiTexProducerView cameraPreviewTextureView, CameraInterface instantVideoCamera) {
         this.muxer = muxer;
@@ -62,6 +63,9 @@ public class CameraStreamPublisher {
         cameraPreviewTextureView.setSurfaceTextureCreatedListener(new GLMultiTexProducerView.SurfaceTextureCreatedListener() {
             @Override
             public void onCreated(List<GLTexture> producedTextureList) {
+                if (onSurfacesCreatedListener != null) {
+                    onSurfacesCreatedListener.onCreated(producedTextureList, streamPublisher);
+                }
                 GLTexture texture = producedTextureList.get(0);
                 SurfaceTexture surfaceTexture = texture.getSurfaceTexture();
                 streamPublisher.addSharedTexture(new GLTexture(texture.getRawTexture(), surfaceTexture));
@@ -109,5 +113,13 @@ public class CameraStreamPublisher {
 
     public void closeAll() {
         streamPublisher.close();
+    }
+
+    public void setOnSurfacesCreatedListener(OnSurfacesCreatedListener onSurfacesCreatedListener) {
+        this.onSurfacesCreatedListener = onSurfacesCreatedListener;
+    }
+
+    public interface OnSurfacesCreatedListener {
+        void onCreated(List<GLTexture> producedTextureList, StreamPublisher streamPublisher);
     }
 }

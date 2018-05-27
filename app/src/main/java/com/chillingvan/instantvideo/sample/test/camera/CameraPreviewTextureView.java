@@ -41,6 +41,11 @@ public class CameraPreviewTextureView extends GLMultiTexProducerView {
     }
 
     @Override
+    protected int getInitialTexCount() {
+        return 2;
+    }
+
+    @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         super.onSurfaceTextureAvailable(surface, width, height);
         if (mGLThread == null) {

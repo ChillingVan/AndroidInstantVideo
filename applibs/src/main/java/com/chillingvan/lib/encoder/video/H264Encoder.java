@@ -54,6 +54,7 @@ public class H264Encoder {
     protected final EncoderCanvas offScreenCanvas;
     private OnDrawListener onDrawListener;
     private boolean isStart;
+    private int initialTextureCount = 1;
 
 
     public H264Encoder(StreamPublisher.StreamPublisherParam params) throws IOException {
@@ -89,6 +90,7 @@ public class H264Encoder {
             }
         });
 
+        this.initialTextureCount = params.getInitialTextureCount();
         offScreenCanvas = new EncoderCanvas(params.width, params.height, eglCtx);
     }
 
@@ -106,6 +108,17 @@ public class H264Encoder {
 
     public MediaCodecInputStream getMediaCodecInputStream() {
         return mediaCodecInputStream;
+    }
+
+    /**
+     *
+     * @param initialTextureCount Default is 1
+     */
+    public void setInitialTextureCount(int initialTextureCount) {
+        if (initialTextureCount < 1) {
+            throw new IllegalArgumentException("initialTextureCount must >= 1");
+        }
+        this.initialTextureCount = initialTextureCount;
     }
 
     public void start() {
@@ -165,5 +178,9 @@ public class H264Encoder {
             }
         }
 
+        @Override
+        protected int getInitialTexCount() {
+            return initialTextureCount;
+        }
     }
 }

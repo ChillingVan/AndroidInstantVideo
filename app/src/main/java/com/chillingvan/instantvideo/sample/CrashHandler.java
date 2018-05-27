@@ -51,7 +51,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
     public static CrashHandler init(Context applicationContext) {
         if (mContext == null) {
             mContext = applicationContext;
-            CRASH_PATH = mContext.getExternalFilesDir(null) +  File.separator + "crash";
+            CRASH_PATH = mContext.getExternalFilesDir(null) + File.separator + "crash";
         }
         return INSTANCE;
     }
@@ -77,7 +77,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
             path.mkdirs();
         }
 
-        File file = new File(CRASH_PATH + File.separator + convertYYMMDDHHmm(System.currentTimeMillis()));
+        File file = new File(CRASH_PATH + File.separator + "log_" + convertYYMMDDHHmm(System.currentTimeMillis()) + ".txt");
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(file);
@@ -88,7 +88,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
             PrintWriter pw = new PrintWriter(writer);
             ex.printStackTrace(pw);
             pw.close();
-            String error= writer.toString();
+            String error = writer.toString();
             fos.write(error.getBytes());
         } catch (IOException e) {
             e.printStackTrace();

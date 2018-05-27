@@ -28,11 +28,13 @@ import android.os.HandlerThread;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Surface;
 import android.view.View;
 import android.widget.TextView;
 
 import com.chillingvan.canvasgl.ICanvasGL;
 import com.chillingvan.canvasgl.glcanvas.BasicTexture;
+import com.chillingvan.canvasgl.glcanvas.RawTexture;
 import com.chillingvan.canvasgl.glview.texture.GLTexture;
 import com.chillingvan.canvasgl.textureFilter.BasicTextureFilter;
 import com.chillingvan.canvasgl.textureFilter.HueFilter;
@@ -59,6 +61,9 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
     private TextView outDirTxt;
     private String outputDir;
 
+    private MediaPlayerHelper mediaPlayer = new MediaPlayerHelper();
+    private Surface mediaSurface;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,7 +74,8 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
             @Override
             public void onGLDraw(ICanvasGL canvasGL, List<GLTexture> producedTextures, List<GLTexture> consumedTextures) {
                 GLTexture texture = producedTextures.get(0);
-                drawVideoFrame(canvasGL, texture.getSurfaceTexture(), texture.getRawTexture());
+                GLTexture mediaTexture = producedTextures.get(1);
+                drawVideoFrame(canvasGL, texture.getSurfaceTexture(), texture.getRawTexture(), mediaTexture);
             }
 
         });
@@ -86,16 +92,18 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
+                playMedia();
 //                StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam();
 //                StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam(1080, 640, 9500 * 1000, 30, 1, 44100, 19200);
-                StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam(540, 750, 1500 * 1000, 30, 1, 44100, 19200);
+                StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam(1080, 750, 1500 * 1000, 30, 1, 44100, 19200);
                 streamPublisherParam.outputFilePath = outputDir;
-//                streamPublisherParam.outputFilePath = getExternalFilesDir(null) + "/test_mp4_encode.mp4";
+                streamPublisherParam.setInitialTextureCount(2);
                 streamPublisher.prepareEncoder(streamPublisherParam, new H264Encoder.OnDrawListener() {
                     @Override
                     public void onGLDraw(ICanvasGL canvasGL, List<GLTexture> producedTextures, List<GLTexture> consumedTextures) {
-                        GLTexture texture = producedTextures.get(0);
-                        drawVideoFrame(canvasGL, texture.getSurfaceTexture(), texture.getRawTexture());
+                        GLTexture texture = consumedTextures.get(1);
+                        GLTexture mediaTexture = consumedTextures.get(0);
+                        drawVideoFrame(canvasGL, texture.getSurfaceTexture(), texture.getRawTexture(), mediaTexture);
                         Loggers.i("DEBUG", "gl draw");
                     }
 
@@ -110,9 +118,18 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
         };
 
         streamPublisher = new CameraStreamPublisher(new MP4Muxer(), cameraPreviewTextureView, instantVideoCamera);
+        streamPublisher.setOnSurfacesCreatedListener(new CameraStreamPublisher.OnSurfacesCreatedListener() {
+            @Override
+            public void onCreated(List<GLTexture> producedTextureList, StreamPublisher streamPublisher) {
+                GLTexture texture = producedTextureList.get(1);
+                GLTexture mediaTexture = producedTextureList.get(1);
+                streamPublisher.addSharedTexture(new GLTexture(mediaTexture.getRawTexture(), mediaTexture.getSurfaceTexture()));
+                mediaSurface = new Surface(texture.getSurfaceTexture());
+            }
+        });
     }
 
-    private void drawVideoFrame(ICanvasGL canvasGL, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
+    private void drawVideoFrame(ICanvasGL canvasGL, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture, GLTexture mediaTexture) {
         // Here you can do video process
         // 此处可以视频处理，例如加水印等等
         TextureFilter textureFilterLT = new BasicTextureFilter();
@@ -122,6 +139,10 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
         canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, 0, width /2, height /2, textureFilterLT);
         canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, height/2, width/2, height, textureFilterRT);
 
+        SurfaceTexture mediaSurfaceTexture = mediaTexture.getSurfaceTexture();
+        RawTexture mediaRawTexture = mediaTexture.getRawTexture();
+        mediaRawTexture.setIsFlippedVertically(true);
+        canvasGL.drawSurfaceTexture(mediaRawTexture, mediaSurfaceTexture, width/2, height/2, width, height);
     }
 
     @Override
@@ -137,11 +158,25 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
         if (streamPublisher.isStart()) {
             streamPublisher.closeAll();
         }
+        if (mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+        }
+    }
+
+    private void playMedia() {
+        if ((mediaPlayer.isPlaying() || mediaPlayer.isLooping())) {
+            return;
+        }
+
+        mediaPlayer.playMedia(this, mediaSurface);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (mediaPlayer.isPlaying()) {
+            mediaPlayer.release();
+        }
         handlerThread.quitSafely();
     }
 
@@ -149,6 +184,9 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
         TextView textView = (TextView) view;
         if (streamPublisher.isStart()) {
             streamPublisher.closeAll();
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.stop();
+            }
             textView.setText("START");
         } else {
             streamPublisher.resumeCamera();

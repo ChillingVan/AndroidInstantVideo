@@ -195,6 +195,8 @@ public class StreamPublisher {
         private MediaFormat videoOutputMediaFormat;
         private MediaFormat audioOutputMediaFormat;
 
+        private int initialTextureCount = 1;
+
         public StreamPublisherParam() {
             this(640, 480, 2949120, 30, 5, 44100, 192000);
         }
@@ -211,6 +213,20 @@ public class StreamPublisher {
             audioBufferSize = AudioRecord.getMinBufferSize(samplingRate, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT) * 2;
         }
 
+        /**
+         *
+         * @param initialTextureCount Default is 1
+         */
+        public void setInitialTextureCount(int initialTextureCount) {
+            if (initialTextureCount < 1) {
+                throw new IllegalArgumentException("initialTextureCount must >= 1");
+            }
+            this.initialTextureCount = initialTextureCount;
+        }
+
+        public int getInitialTextureCount() {
+            return initialTextureCount;
+        }
 
         public MediaFormat createVideoMediaFormat() {
             MediaFormat format = MediaFormat.createVideoFormat(videoMIMEType, width, height);
