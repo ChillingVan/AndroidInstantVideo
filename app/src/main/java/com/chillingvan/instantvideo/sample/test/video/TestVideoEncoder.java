@@ -28,8 +28,9 @@ import android.media.MediaCodec;
 import android.util.Log;
 
 import com.chillingvan.canvasgl.ICanvasGL;
-import com.chillingvan.canvasgl.glcanvas.BasicTexture;
 import com.chillingvan.canvasgl.glcanvas.GLPaint;
+import com.chillingvan.canvasgl.glcanvas.RawTexture;
+import com.chillingvan.canvasgl.glview.texture.GLTexture;
 import com.chillingvan.canvasgl.glview.texture.gles.EglContextWrapper;
 import com.chillingvan.canvasgl.util.Loggers;
 import com.chillingvan.lib.encoder.MediaCodecInputStream;
@@ -41,6 +42,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Chilling on 2016/12/10.
@@ -53,9 +56,8 @@ public class TestVideoEncoder {
     private Context ctx;
     private EglContextWrapper eglCtx;
     public static int drawCnt;
-    private BasicTexture outsideTexture;
-    private SurfaceTexture outsideSurfaceTexture;
     private OutputStream os;
+    private List<GLTexture> glTextureList = new ArrayList<>();
 
     public TestVideoEncoder(Context ctx, final EglContextWrapper eglCtx) {
         this.ctx = ctx;
@@ -71,16 +73,17 @@ public class TestVideoEncoder {
     public void prepareEncoder(H264Encoder.OnDrawListener onDrawListener) {
         try {
             h264Encoder = new H264Encoder(new StreamPublisher.StreamPublisherParam(), eglCtx);
-            h264Encoder.setSharedTexture(outsideTexture, outsideSurfaceTexture);
+            for (GLTexture texture : glTextureList) {
+                h264Encoder.addSharedTexture(texture);
+            }
             h264Encoder.setOnDrawListener(onDrawListener);
         } catch (IOException | IllegalStateException e) {
             e.printStackTrace();
         }
     }
 
-    public void setSharedTexture(BasicTexture outsideTexture, SurfaceTexture outsideSurfaceTexture) {
-        this.outsideTexture = outsideTexture;
-        this.outsideSurfaceTexture = outsideSurfaceTexture;
+    public void addSharedTexture(RawTexture outsideTexture, SurfaceTexture outsideSurfaceTexture) {
+        glTextureList.add(new GLTexture(outsideTexture, outsideSurfaceTexture));
     }
 
     public static void drawRect(ICanvasGL canvasGL, int drawCnt) {

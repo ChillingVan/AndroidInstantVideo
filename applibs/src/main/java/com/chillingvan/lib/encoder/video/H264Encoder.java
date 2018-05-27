@@ -20,28 +20,26 @@
 
 package com.chillingvan.lib.encoder.video;
 
-import android.graphics.SurfaceTexture;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
-import android.support.annotation.Nullable;
 import android.view.Surface;
 
 import com.chillingvan.canvasgl.ICanvasGL;
-import com.chillingvan.canvasgl.OffScreenCanvas;
-import com.chillingvan.canvasgl.glcanvas.BasicTexture;
-import com.chillingvan.canvasgl.glcanvas.RawTexture;
+import com.chillingvan.canvasgl.MultiTexOffScreenCanvas;
+import com.chillingvan.canvasgl.glview.texture.GLTexture;
 import com.chillingvan.canvasgl.glview.texture.gles.EglContextWrapper;
 import com.chillingvan.canvasgl.util.Loggers;
 import com.chillingvan.lib.encoder.MediaCodecInputStream;
 import com.chillingvan.lib.publisher.StreamPublisher;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Data Stream:
  *
- * The texture of {@link H264Encoder#setSharedTexture} -> Surface of MediaCodec -> encode data(byte[])
+ * The texture of {@link H264Encoder#addSharedTexture} -> Surface of MediaCodec -> encode data(byte[])
  *
  */
 public class H264Encoder {
@@ -53,7 +51,7 @@ public class H264Encoder {
     private static final String MIME_TYPE = "video/avc";    // H.264 Advanced Video Coding
     private static final int FRAME_RATE = 30;               // 30fps
     private static final int IFRAME_INTERVAL = 5;           // 5 seconds between I-frames
-    private final EncoderCanvas offScreenCanvas;
+    protected final EncoderCanvas offScreenCanvas;
     private OnDrawListener onDrawListener;
     private boolean isStart;
 
@@ -97,8 +95,8 @@ public class H264Encoder {
     /**
      * If called, should be called before start() called.
      */
-    public void setSharedTexture(BasicTexture outsideTexture, SurfaceTexture outsideSurfaceTexture) {
-        offScreenCanvas.setSharedTexture(outsideTexture, outsideSurfaceTexture);
+    public void addSharedTexture(GLTexture texture) {
+        offScreenCanvas.addConsumeGLTexture(texture);
     }
 
 
@@ -146,21 +144,26 @@ public class H264Encoder {
     }
 
     public interface OnDrawListener {
-        void onGLDraw(ICanvasGL canvasGL, SurfaceTexture surfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture);
+        /**
+         * Called when a frame is ready to be drawn.
+         * @param canvasGL The gl canvas
+         * @param producedTextures The textures produced by internal. These can be used for camera or video decoder to render.
+         * @param consumedTextures See {@link #addSharedTexture(GLTexture)}. The textures you set from outside. Then you can draw the textures render by other Views of OffscreenCanvas.
+         */
+        void onGLDraw(ICanvasGL canvasGL, List<GLTexture> producedTextures, List<GLTexture> consumedTextures);
     }
 
-    private class EncoderCanvas extends OffScreenCanvas {
+    private class EncoderCanvas extends MultiTexOffScreenCanvas {
         public EncoderCanvas(int width, int height, EglContextWrapper eglCtx) {
             super(width, height, eglCtx, H264Encoder.this.mInputSurface);
         }
 
-
-
         @Override
-        protected void onGLDraw(ICanvasGL iCanvasGL, SurfaceTexture surfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
+        protected void onGLDraw(ICanvasGL canvas, List<GLTexture> producedTextures, List<GLTexture> consumedTextures) {
             if (onDrawListener != null) {
-                onDrawListener.onGLDraw(iCanvasGL, surfaceTexture, rawTexture, outsideSurfaceTexture, outsideTexture);
+                onDrawListener.onGLDraw(canvas, producedTextures, consumedTextures);
             }
         }
+
     }
 }

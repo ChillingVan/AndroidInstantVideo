@@ -27,19 +27,20 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 
 import com.chillingvan.canvasgl.ICanvasGL;
-import com.chillingvan.canvasgl.glcanvas.BasicTexture;
 import com.chillingvan.canvasgl.glcanvas.RawTexture;
 import com.chillingvan.canvasgl.glview.texture.GLSurfaceTextureProducerView;
+import com.chillingvan.canvasgl.glview.texture.GLTexture;
 import com.chillingvan.canvasgl.glview.texture.gles.EglContextWrapper;
 import com.chillingvan.canvasgl.glview.texture.gles.GLThread;
 import com.chillingvan.instantvideo.sample.R;
 import com.chillingvan.lib.encoder.video.H264Encoder;
+
+import java.util.List;
 
 
 public class TestVideoEncoderActivity extends AppCompatActivity {
@@ -66,7 +67,7 @@ public class TestVideoEncoderActivity extends AppCompatActivity {
         produceTextureView.setOnSurfaceTextureSet(new GLSurfaceTextureProducerView.OnSurfaceTextureSet() {
             @Override
             public void onSet(SurfaceTexture surfaceTexture, RawTexture rawTexture) {
-                testVideoEncoder.setSharedTexture(rawTexture, surfaceTexture);
+                testVideoEncoder.addSharedTexture(rawTexture, surfaceTexture);
                 surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
                     @Override
                     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
@@ -98,7 +99,8 @@ public class TestVideoEncoderActivity extends AppCompatActivity {
                     final Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.lenna);
                     testVideoEncoder.prepareEncoder(new H264Encoder.OnDrawListener() {
                         @Override
-                        public void onGLDraw(ICanvasGL canvasGL, SurfaceTexture producedSurfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
+                        public void onGLDraw(ICanvasGL canvasGL, List<GLTexture> producedTextures, List<GLTexture> consumedTextures) {
+
                             TestVideoEncoder.drawCnt++;
 
                             if (TestVideoEncoder.drawCnt == 19 || TestVideoEncoder.drawCnt == 39) {
@@ -111,6 +113,7 @@ public class TestVideoEncoderActivity extends AppCompatActivity {
                             }
                             Log.i("TestVideoEncoder", "gl draw");
                         }
+
                     });
                     testVideoEncoder.start();
                     for (int i = 0; i < 120; i++) {

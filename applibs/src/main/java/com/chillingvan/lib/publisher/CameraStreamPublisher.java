@@ -22,8 +22,8 @@ package com.chillingvan.lib.publisher;
 
 import android.graphics.SurfaceTexture;
 
-import com.chillingvan.canvasgl.glcanvas.RawTexture;
-import com.chillingvan.canvasgl.glview.texture.GLSurfaceTextureProducerView;
+import com.chillingvan.canvasgl.glview.texture.GLMultiTexProducerView;
+import com.chillingvan.canvasgl.glview.texture.GLTexture;
 import com.chillingvan.canvasgl.glview.texture.gles.EglContextWrapper;
 import com.chillingvan.canvasgl.glview.texture.gles.GLThread;
 import com.chillingvan.lib.camera.CameraInterface;
@@ -31,6 +31,7 @@ import com.chillingvan.lib.encoder.video.H264Encoder;
 import com.chillingvan.lib.muxer.IMuxer;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Data Stream:
@@ -42,10 +43,10 @@ public class CameraStreamPublisher {
 
     private StreamPublisher streamPublisher;
     private IMuxer muxer;
-    private GLSurfaceTextureProducerView cameraPreviewTextureView;
+    private GLMultiTexProducerView cameraPreviewTextureView;
     private CameraInterface instantVideoCamera;
 
-    public CameraStreamPublisher(IMuxer muxer, GLSurfaceTextureProducerView cameraPreviewTextureView, CameraInterface instantVideoCamera) {
+    public CameraStreamPublisher(IMuxer muxer, GLMultiTexProducerView cameraPreviewTextureView, CameraInterface instantVideoCamera) {
         this.muxer = muxer;
         this.cameraPreviewTextureView = cameraPreviewTextureView;
         this.instantVideoCamera = instantVideoCamera;
@@ -58,10 +59,12 @@ public class CameraStreamPublisher {
                 streamPublisher = new StreamPublisher(eglContext, muxer);
             }
         });
-        cameraPreviewTextureView.setOnSurfaceTextureSet(new GLSurfaceTextureProducerView.OnSurfaceTextureSet() {
+        cameraPreviewTextureView.setSurfaceTextureCreatedListener(new GLMultiTexProducerView.SurfaceTextureCreatedListener() {
             @Override
-            public void onSet(SurfaceTexture surfaceTexture, RawTexture rawTexture) {
-                streamPublisher.setSharedTexture(rawTexture, surfaceTexture);
+            public void onCreated(List<GLTexture> producedTextureList) {
+                GLTexture texture = producedTextureList.get(0);
+                SurfaceTexture surfaceTexture = texture.getSurfaceTexture();
+                streamPublisher.addSharedTexture(new GLTexture(texture.getRawTexture(), surfaceTexture));
                 surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
                     @Override
                     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
@@ -89,7 +92,7 @@ public class CameraStreamPublisher {
     }
 
     public boolean isStart() {
-        return streamPublisher.isStart();
+        return streamPublisher != null && streamPublisher.isStart();
     }
 
     public void pauseCamera() {

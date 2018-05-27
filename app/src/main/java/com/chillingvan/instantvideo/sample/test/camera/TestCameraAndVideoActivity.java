@@ -6,22 +6,22 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import com.chillingvan.canvasgl.ICanvasGL;
-import com.chillingvan.canvasgl.glcanvas.BasicTexture;
 import com.chillingvan.canvasgl.glcanvas.RawTexture;
-import com.chillingvan.canvasgl.glview.texture.GLSurfaceTextureProducerView;
+import com.chillingvan.canvasgl.glview.texture.GLMultiTexProducerView;
+import com.chillingvan.canvasgl.glview.texture.GLTexture;
 import com.chillingvan.canvasgl.glview.texture.gles.EglContextWrapper;
 import com.chillingvan.canvasgl.glview.texture.gles.GLThread;
 import com.chillingvan.instantvideo.sample.R;
 import com.chillingvan.instantvideo.sample.test.video.TestVideoEncoder;
 import com.chillingvan.lib.camera.InstantVideoCamera;
 import com.chillingvan.lib.encoder.video.H264Encoder;
+
+import java.util.List;
 
 /**
  * Data Stream:
@@ -42,7 +42,11 @@ public class TestCameraAndVideoActivity extends AppCompatActivity {
         cameraPreviewTextureView = (CameraPreviewTextureView) findViewById(R.id.camera_produce_view);
         cameraPreviewTextureView.setOnDrawListener(new H264Encoder.OnDrawListener() {
             @Override
-            public void onGLDraw(ICanvasGL canvasGL, SurfaceTexture surfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
+            public void onGLDraw(ICanvasGL canvasGL, List<GLTexture> producedTextures, List<GLTexture> consumedTextures) {
+
+                GLTexture texture = producedTextures.get(0);
+                SurfaceTexture surfaceTexture = texture.getSurfaceTexture();
+                RawTexture rawTexture = texture.getRawTexture();
                 canvasGL.drawSurfaceTexture(rawTexture, surfaceTexture, 0, 0, rawTexture.getWidth(), rawTexture.getHeight());
             }
         });
@@ -81,10 +85,12 @@ public class TestCameraAndVideoActivity extends AppCompatActivity {
                 testVideoEncoder = new TestVideoEncoder(getApplicationContext(), eglContext);
             }
         });
-        cameraPreviewTextureView.setOnSurfaceTextureSet(new GLSurfaceTextureProducerView.OnSurfaceTextureSet() {
+        cameraPreviewTextureView.setSurfaceTextureCreatedListener(new GLMultiTexProducerView.SurfaceTextureCreatedListener() {
             @Override
-            public void onSet(SurfaceTexture surfaceTexture, RawTexture rawTexture) {
-                testVideoEncoder.setSharedTexture(rawTexture, surfaceTexture);
+            public void onCreated(List<GLTexture> producedTextureList) {
+                GLTexture texture = producedTextureList.get(0);
+                SurfaceTexture surfaceTexture = texture.getSurfaceTexture();
+                testVideoEncoder.addSharedTexture(texture.getRawTexture(), surfaceTexture);
                 surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
                     @Override
                     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
@@ -128,10 +134,13 @@ public class TestCameraAndVideoActivity extends AppCompatActivity {
         } else {
             testVideoEncoder.prepareEncoder(new H264Encoder.OnDrawListener() {
                 @Override
-                public void onGLDraw(ICanvasGL canvasGL, SurfaceTexture producedSurfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
+                public void onGLDraw(ICanvasGL canvasGL, List<GLTexture> producedTextures, List<GLTexture> consumedTextures) {
+                    GLTexture texture = consumedTextures.get(0);
+                    SurfaceTexture outsideSurfaceTexture = texture.getSurfaceTexture();
+                    RawTexture outsideTexture = texture.getRawTexture();
                     canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, 0, outsideTexture.getWidth(), outsideTexture.getHeight());
-                    Log.i("TestVideoEncoder", "gl draw");
                 }
+
             });
             testVideoEncoder.start();
             textView.setText("STOP");

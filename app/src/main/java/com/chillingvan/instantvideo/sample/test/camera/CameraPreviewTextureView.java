@@ -7,21 +7,22 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.SurfaceTexture;
-import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 
 import com.chillingvan.canvasgl.ICanvasGL;
 import com.chillingvan.canvasgl.androidCanvas.IAndroidCanvasHelper;
-import com.chillingvan.canvasgl.glcanvas.BasicTexture;
-import com.chillingvan.canvasgl.glcanvas.RawTexture;
-import com.chillingvan.canvasgl.glview.texture.GLSurfaceTextureProducerView;
+import com.chillingvan.canvasgl.glview.texture.GLMultiTexProducerView;
+import com.chillingvan.canvasgl.glview.texture.GLTexture;
+import com.chillingvan.canvasgl.glview.texture.gles.EglContextWrapper;
 import com.chillingvan.lib.encoder.video.H264Encoder;
+
+import java.util.List;
 
 /**
  * Created by Leon on 2017/4/19.
  */
 
-public class CameraPreviewTextureView extends GLSurfaceTextureProducerView {
+public class CameraPreviewTextureView extends GLMultiTexProducerView {
 
     private H264Encoder.OnDrawListener onDrawListener;
     private IAndroidCanvasHelper drawTextHelper = IAndroidCanvasHelper.Factory.createAndroidCanvasHelper(IAndroidCanvasHelper.MODE.MODE_ASYNC);
@@ -40,6 +41,14 @@ public class CameraPreviewTextureView extends GLSurfaceTextureProducerView {
     }
 
     @Override
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+        super.onSurfaceTextureAvailable(surface, width, height);
+        if (mGLThread == null) {
+            setSharedEglContext(EglContextWrapper.EGL_NO_CONTEXT_WRAPPER);
+        }
+    }
+
+    @Override
     public void onSurfaceChanged(int width, int height) {
         super.onSurfaceChanged(width, height);
         drawTextHelper.init(width, height);
@@ -48,13 +57,9 @@ public class CameraPreviewTextureView extends GLSurfaceTextureProducerView {
         textPaint.setTextSize(dp2px(15));
     }
 
-    private float dp2px(int dp) {
-        return dp * getContext().getResources().getDisplayMetrics().density;
-    }
-
     @Override
-    protected void onGLDraw(final ICanvasGL canvas, SurfaceTexture producedSurfaceTexture, RawTexture producedRawTexture, @Nullable SurfaceTexture sharedSurfaceTexture, @Nullable BasicTexture sharedTexture) {
-        onDrawListener.onGLDraw(canvas, producedSurfaceTexture, producedRawTexture, sharedSurfaceTexture, sharedTexture);
+    protected void onGLDraw(ICanvasGL canvas, List<GLTexture> producedTextures, List<GLTexture> consumedTextures) {
+        onDrawListener.onGLDraw(canvas, producedTextures, consumedTextures);
         drawTextHelper.draw(new IAndroidCanvasHelper.CanvasPainter() {
             @Override
             public void draw(Canvas androidCanvas) {
@@ -65,6 +70,10 @@ public class CameraPreviewTextureView extends GLSurfaceTextureProducerView {
         Bitmap outputBitmap = drawTextHelper.getOutputBitmap();
         canvas.invalidateTextureContent(outputBitmap);
         canvas.drawBitmap(outputBitmap, 0, 0);
+    }
+
+    private float dp2px(int dp) {
+        return dp * getContext().getResources().getDisplayMetrics().density;
     }
 
     public void setOnDrawListener(H264Encoder.OnDrawListener l) {

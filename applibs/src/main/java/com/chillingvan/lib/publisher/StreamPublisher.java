@@ -20,7 +20,6 @@
 
 package com.chillingvan.lib.publisher;
 
-import android.graphics.SurfaceTexture;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaCodec;
@@ -30,7 +29,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 
-import com.chillingvan.canvasgl.glcanvas.BasicTexture;
+import com.chillingvan.canvasgl.glview.texture.GLTexture;
 import com.chillingvan.canvasgl.glview.texture.gles.EglContextWrapper;
 import com.chillingvan.canvasgl.util.Loggers;
 import com.chillingvan.lib.encoder.MediaCodecInputStream;
@@ -39,6 +38,8 @@ import com.chillingvan.lib.encoder.video.H264Encoder;
 import com.chillingvan.lib.muxer.IMuxer;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Data Stream: <br>
@@ -52,10 +53,8 @@ public class StreamPublisher {
 
     public static final int MSG_OPEN = 1;
     public static final int MSG_WRITE_VIDEO = 2;
-    private BasicTexture outsideTexture;
     private EglContextWrapper eglCtx;
     private IMuxer muxer;
-    private SurfaceTexture outsideSurfaceTexture;
     private AACEncoder aacEncoder;
     private H264Encoder h264Encoder;
     private boolean isStart;
@@ -64,9 +63,7 @@ public class StreamPublisher {
 
     private Handler writeVideoHandler;
     private StreamPublisherParam param;
-
-    {
-    }
+    private List<GLTexture> sharedTextureList = new ArrayList<>();
 
     public StreamPublisher(EglContextWrapper eglCtx, IMuxer muxer) {
         this.eglCtx = eglCtx;
@@ -79,7 +76,9 @@ public class StreamPublisher {
 
         try {
             h264Encoder = new H264Encoder(param, eglCtx);
-            h264Encoder.setSharedTexture(outsideTexture, outsideSurfaceTexture);
+            for (GLTexture texture :sharedTextureList ) {
+                h264Encoder.addSharedTexture(texture);
+            }
             h264Encoder.setOnDrawListener(onDrawListener);
             aacEncoder = new AACEncoder(param);
             aacEncoder.setOnDataComingCallback(new AACEncoder.OnDataComingCallback() {
@@ -129,9 +128,8 @@ public class StreamPublisher {
         };
     }
 
-    public void setSharedTexture(BasicTexture outsideTexture, SurfaceTexture outsideSurfaceTexture) {
-        this.outsideTexture = outsideTexture;
-        this.outsideSurfaceTexture = outsideSurfaceTexture;
+    public void addSharedTexture(GLTexture outsideTexture) {
+        sharedTextureList.add(outsideTexture);
     }
 
 

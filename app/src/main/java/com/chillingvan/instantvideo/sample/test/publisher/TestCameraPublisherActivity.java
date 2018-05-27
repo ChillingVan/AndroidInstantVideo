@@ -34,11 +34,10 @@ import android.widget.TextView;
 
 import com.chillingvan.canvasgl.ICanvasGL;
 import com.chillingvan.canvasgl.glcanvas.BasicTexture;
-import com.chillingvan.canvasgl.glcanvas.RawTexture;
+import com.chillingvan.canvasgl.glview.texture.GLTexture;
 import com.chillingvan.canvasgl.textureFilter.BasicTextureFilter;
 import com.chillingvan.canvasgl.textureFilter.HueFilter;
 import com.chillingvan.canvasgl.textureFilter.TextureFilter;
-import com.chillingvan.canvasgl.util.Loggers;
 import com.chillingvan.instantvideo.sample.R;
 import com.chillingvan.instantvideo.sample.test.camera.CameraPreviewTextureView;
 import com.chillingvan.lib.camera.InstantVideoCamera;
@@ -48,6 +47,7 @@ import com.chillingvan.lib.publisher.CameraStreamPublisher;
 import com.chillingvan.lib.publisher.StreamPublisher;
 
 import java.io.IOException;
+import java.util.List;
 
 public class TestCameraPublisherActivity extends AppCompatActivity {
 
@@ -62,12 +62,15 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test_camera_publisher);
-        cameraPreviewTextureView = (CameraPreviewTextureView) findViewById(R.id.camera_produce_view);
+        cameraPreviewTextureView = findViewById(R.id.camera_produce_view);
         cameraPreviewTextureView.setOnDrawListener(new H264Encoder.OnDrawListener() {
             @Override
-            public void onGLDraw(ICanvasGL canvasGL, SurfaceTexture surfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
-                drawVideoFrame(canvasGL, surfaceTexture, rawTexture);
+            public void onGLDraw(ICanvasGL canvasGL, List<GLTexture> producedTextures, List<GLTexture> consumedTextures) {
+
+                GLTexture texture = producedTextures.get(0);
+                drawVideoFrame(canvasGL, texture.getSurfaceTexture(), texture.getRawTexture());
             }
+
         });
         addrEditText = (EditText) findViewById(R.id.ip_input_test);
 
@@ -88,10 +91,9 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
 //                streamPublisherParam.outputFilePath = getExternalFilesDir(null) + "/test_mp4_encode.mp4";
                 streamPublisher.prepareEncoder(streamPublisherParam, new H264Encoder.OnDrawListener() {
                     @Override
-                    public void onGLDraw(ICanvasGL canvasGL, SurfaceTexture surfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
-                        drawVideoFrame(canvasGL, outsideSurfaceTexture, outsideTexture);
-
-                        Loggers.i("DEBUG", "gl draw");
+                    public void onGLDraw(ICanvasGL canvasGL, List<GLTexture> producedTextures, List<GLTexture> consumedTextures) {
+                        GLTexture texture = producedTextures.get(0);
+                        drawVideoFrame(canvasGL, texture.getSurfaceTexture(), texture.getRawTexture());
                     }
                 });
                 try {

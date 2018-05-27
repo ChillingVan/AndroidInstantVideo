@@ -33,7 +33,7 @@ import android.widget.TextView;
 
 import com.chillingvan.canvasgl.ICanvasGL;
 import com.chillingvan.canvasgl.glcanvas.BasicTexture;
-import com.chillingvan.canvasgl.glcanvas.RawTexture;
+import com.chillingvan.canvasgl.glview.texture.GLTexture;
 import com.chillingvan.canvasgl.textureFilter.BasicTextureFilter;
 import com.chillingvan.canvasgl.textureFilter.HueFilter;
 import com.chillingvan.canvasgl.textureFilter.TextureFilter;
@@ -47,6 +47,7 @@ import com.chillingvan.lib.publisher.CameraStreamPublisher;
 import com.chillingvan.lib.publisher.StreamPublisher;
 
 import java.io.IOException;
+import java.util.List;
 
 public class TestMp4MuxerActivity extends AppCompatActivity {
 
@@ -63,12 +64,14 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         outputDir = getExternalFilesDir(null) + "/test_mp4_encode.mp4";
         setContentView(R.layout.activity_test_mp4_muxer);
-        cameraPreviewTextureView = (CameraPreviewTextureView) findViewById(R.id.camera_produce_view);
+        cameraPreviewTextureView = findViewById(R.id.camera_produce_view);
         cameraPreviewTextureView.setOnDrawListener(new H264Encoder.OnDrawListener() {
             @Override
-            public void onGLDraw(ICanvasGL canvasGL, SurfaceTexture surfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
-                drawVideoFrame(canvasGL, surfaceTexture, rawTexture);
+            public void onGLDraw(ICanvasGL canvasGL, List<GLTexture> producedTextures, List<GLTexture> consumedTextures) {
+                GLTexture texture = producedTextures.get(0);
+                drawVideoFrame(canvasGL, texture.getSurfaceTexture(), texture.getRawTexture());
             }
+
         });
         outDirTxt = (TextView) findViewById(R.id.output_dir_txt);
         outDirTxt.setText(outputDir);
@@ -90,11 +93,12 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
 //                streamPublisherParam.outputFilePath = getExternalFilesDir(null) + "/test_mp4_encode.mp4";
                 streamPublisher.prepareEncoder(streamPublisherParam, new H264Encoder.OnDrawListener() {
                     @Override
-                    public void onGLDraw(ICanvasGL canvasGL, SurfaceTexture surfaceTexture, RawTexture rawTexture, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
-                        drawVideoFrame(canvasGL, outsideSurfaceTexture, outsideTexture);
-
+                    public void onGLDraw(ICanvasGL canvasGL, List<GLTexture> producedTextures, List<GLTexture> consumedTextures) {
+                        GLTexture texture = producedTextures.get(0);
+                        drawVideoFrame(canvasGL, texture.getSurfaceTexture(), texture.getRawTexture());
                         Loggers.i("DEBUG", "gl draw");
                     }
+
                 });
                 try {
                     streamPublisher.startPublish();
