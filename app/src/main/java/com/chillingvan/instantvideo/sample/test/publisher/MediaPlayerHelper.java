@@ -42,6 +42,13 @@ public class MediaPlayerHelper {
         return false;
     }
 
+    public void restart() {
+        if (mediaPlayer != null) {
+            mediaPlayer.start();
+        }
+
+    }
+
     public void playMedia(final Context context, Surface mediaSurface) {
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setVolume(0, 0);
@@ -87,6 +94,12 @@ public class MediaPlayerHelper {
             e.printStackTrace();
         }
 
+    }
+
+    public void pause() {
+        if (mediaPlayer != null) {
+            mediaPlayer.pause();
+        }
     }
 
     public void stop() {

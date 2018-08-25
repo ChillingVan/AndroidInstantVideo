@@ -55,8 +55,9 @@ public class TestAudioEncoderActivity extends AppCompatActivity {
             testAudioEncoder.stop();
             textView.setText("RECORD");
         } else {
+            testAudioEncoder.prepareEncoder();
             testAudioEncoder.start();
-            textView.setText("stop");
+            textView.setText("PAUSE");
         }
     }
 }
