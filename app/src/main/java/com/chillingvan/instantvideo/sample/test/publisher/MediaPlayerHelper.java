@@ -51,7 +51,7 @@ public class MediaPlayerHelper {
 
     public void playMedia(final Context context, Surface mediaSurface) {
         mediaPlayer = new MediaPlayer();
-        mediaPlayer.setVolume(0, 0);
+//        mediaPlayer.setVolume(0, 0);
         try {
             AssetFileDescriptor afd = context.getAssets().openFd(videoName);
             mediaPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());

@@ -108,7 +108,16 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
 //                StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam();
 //                StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam(1080, 640, 9500 * 1000, 30, 1, 44100, 19200);
                 StreamPublisher.StreamPublisherParam.Builder builder = new StreamPublisher.StreamPublisherParam.Builder();
-                StreamPublisher.StreamPublisherParam streamPublisherParam = builder.setWidth(1080).setHeight(750).setVideoBitRate(1500 * 1000).setFrameRate(30).setIframeInterval(1).setSamplingRate(44100).setAudioBitRate(19200).setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION).createStreamPublisherParam();
+                StreamPublisher.StreamPublisherParam streamPublisherParam = builder
+                        .setWidth(1080)
+                        .setHeight(750)
+                        .setVideoBitRate(1500 * 1000)
+                        .setFrameRate(30)
+                        .setIframeInterval(1)
+                        .setSamplingRate(44100)
+                        .setAudioBitRate(19200)
+                        .setAudioSource(MediaRecorder.AudioSource.MIC)
+                        .createStreamPublisherParam();
                 streamPublisherParam.outputFilePath = outputDir;
                 streamPublisherParam.setInitialTextureCount(2);
                 streamPublisher.prepareEncoder(streamPublisherParam, new H264Encoder.OnDrawListener() {

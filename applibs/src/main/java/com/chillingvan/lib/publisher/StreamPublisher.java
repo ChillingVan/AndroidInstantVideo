@@ -186,7 +186,7 @@ public class StreamPublisher {
         public int iframeInterval = 5;
         public int samplingRate = 44100;
         public int audioBitRate = 192000;
-        public int audioSource = MediaRecorder.AudioSource.MIC;
+        public int audioSource;
         public int channelCfg = AudioFormat.CHANNEL_IN_STEREO;
 
         public String videoMIMEType = "video/avc";
