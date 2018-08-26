@@ -27,6 +27,7 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
+import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -73,15 +74,11 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
 
     private IAndroidCanvasHelper drawTextHelper = IAndroidCanvasHelper.Factory.createAndroidCanvasHelper(IAndroidCanvasHelper.MODE.MODE_ASYNC);
     private Paint textPaint;
-    {
-        textPaint = new Paint();
-        textPaint.setColor(Color.WHITE);
-        textPaint.setTextSize(ScreenUtil.dpToPx(getApplicationContext(), 15));
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        initTextPaint();
         outputDir = getExternalFilesDir(null) + "/test_mp4_encode.mp4";
         setContentView(R.layout.activity_test_mp4_muxer);
         cameraPreviewTextureView = findViewById(R.id.camera_produce_view);
@@ -110,7 +107,8 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
                 playMedia();
 //                StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam();
 //                StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam(1080, 640, 9500 * 1000, 30, 1, 44100, 19200);
-                StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam.Builder().setWidth(1080).setHeight(750).setVideoBitRate(1500 * 1000).setFrameRate(30).setIframeInterval(1).setSamplingRate(44100).setAudioBitRate(19200).createStreamPublisherParam();
+                StreamPublisher.StreamPublisherParam.Builder builder = new StreamPublisher.StreamPublisherParam.Builder();
+                StreamPublisher.StreamPublisherParam streamPublisherParam = builder.setWidth(1080).setHeight(750).setVideoBitRate(1500 * 1000).setFrameRate(30).setIframeInterval(1).setSamplingRate(44100).setAudioBitRate(19200).setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION).createStreamPublisherParam();
                 streamPublisherParam.outputFilePath = outputDir;
                 streamPublisherParam.setInitialTextureCount(2);
                 streamPublisher.prepareEncoder(streamPublisherParam, new H264Encoder.OnDrawListener() {
@@ -144,6 +142,12 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
         });
     }
 
+    private void initTextPaint() {
+        textPaint = new Paint();
+        textPaint.setColor(Color.WHITE);
+        textPaint.setTextSize(ScreenUtil.dpToPx(getApplicationContext(), 15));
+    }
+
     private void drawVideoFrame(ICanvasGL canvasGL, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture, GLTexture mediaTexture) {
         // Here you can do video process
         // 此处可以视频处理，例如加水印等等
@@ -154,6 +158,7 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
         canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, 0, width /2, height /2, textureFilterLT);
         canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, height/2, width/2, height, textureFilterRT);
 
+        drawTextHelper.init(width/2, height/2);
         drawTextHelper.draw(new IAndroidCanvasHelper.CanvasPainter() {
             @Override
             public void draw(Canvas androidCanvas) {

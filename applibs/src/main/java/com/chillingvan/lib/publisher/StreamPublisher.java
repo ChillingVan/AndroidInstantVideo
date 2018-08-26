@@ -317,12 +317,14 @@ public class StreamPublisher {
                 return this;
             }
 
-            public void setAudioSource(int audioSource) {
+            public Builder setAudioSource(int audioSource) {
                 this.audioSource = audioSource;
+                return this;
             }
 
-            public void setChannelCfg(int channelCfg) {
+            public Builder setChannelCfg(int channelCfg) {
                 this.channelCfg = channelCfg;
+                return this;
             }
 
             public StreamPublisherParam createStreamPublisherParam() {
