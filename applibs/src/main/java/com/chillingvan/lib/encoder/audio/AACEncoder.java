@@ -24,7 +24,7 @@ import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
-import android.media.MediaRecorder;
+import android.media.audiofx.NoiseSuppressor;
 import android.util.Log;
 
 import com.chillingvan.canvasgl.util.Loggers;
@@ -64,7 +64,10 @@ public class AACEncoder {
                 params.setAudioOutputMediaFormat(mediaFormat);
             }
         });
-        mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, samplingRate, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT, bufferSize);
+        mAudioRecord = new AudioRecord(params.audioSource, samplingRate, params.channelCfg, AudioFormat.ENCODING_PCM_16BIT, bufferSize);
+        if (NoiseSuppressor.isAvailable()) {
+            NoiseSuppressor noiseSuppressor = NoiseSuppressor.create(mAudioRecord.getAudioSessionId());
+        }
 
     }
 

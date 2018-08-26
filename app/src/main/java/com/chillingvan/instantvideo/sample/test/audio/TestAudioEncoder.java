@@ -22,6 +22,7 @@ package com.chillingvan.instantvideo.sample.test.audio;
 
 import android.content.Context;
 import android.media.MediaCodec;
+import android.media.MediaRecorder;
 
 import com.chillingvan.canvasgl.util.Loggers;
 import com.chillingvan.lib.encoder.MediaCodecInputStream;
@@ -57,7 +58,9 @@ public class TestAudioEncoder {
 
     public void prepareEncoder() {
         try {
-            StreamPublisher.StreamPublisherParam streamPublisherParam = new StreamPublisher.StreamPublisherParam();
+            StreamPublisher.StreamPublisherParam.Builder builder = new StreamPublisher.StreamPublisherParam.Builder();
+            builder.setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION);
+            StreamPublisher.StreamPublisherParam streamPublisherParam = builder.createStreamPublisherParam();
             aacEncoder = new AACEncoder(streamPublisherParam);
             aacEncoder.setOnDataComingCallback(new AACEncoder.OnDataComingCallback() {
                 @Override

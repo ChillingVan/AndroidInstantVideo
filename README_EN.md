@@ -14,25 +14,6 @@ Show the stream of Android video hardware encode, including video processing and
 ## Requirement
 * Android API >= 18 
 
-## Usage 
-
-### Gradle dependency
-sample:
-```groovy
-// in root build.gradle
-allprojects {
-    repositories {
-        jcenter()
-        maven { url "https://jitpack.io" }
-    }
-}
-
-// module build.gradle
-dependencies {
-    compile 'com.github.ChillingVan:AndroidInstantVideo:v1.0.3.0'
-}
-```
-
 
 ### Feature
 

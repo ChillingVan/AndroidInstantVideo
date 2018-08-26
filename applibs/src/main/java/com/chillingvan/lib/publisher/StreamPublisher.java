@@ -25,6 +25,7 @@ import android.media.AudioRecord;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
+import android.media.MediaRecorder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
@@ -185,6 +186,8 @@ public class StreamPublisher {
         public int iframeInterval = 5;
         public int samplingRate = 44100;
         public int audioBitRate = 192000;
+        public int audioSource = MediaRecorder.AudioSource.MIC;
+        public int channelCfg = AudioFormat.CHANNEL_IN_STEREO;
 
         public String videoMIMEType = "video/avc";
         public String audioMIME = "audio/mp4a-latm";
@@ -198,11 +201,11 @@ public class StreamPublisher {
         private int initialTextureCount = 1;
 
         public StreamPublisherParam() {
-            this(640, 480, 2949120, 30, 5, 44100, 192000);
+            this(640, 480, 2949120, 30, 5, 44100, 192000, MediaRecorder.AudioSource.MIC, AudioFormat.CHANNEL_IN_STEREO);
         }
 
-        public StreamPublisherParam(int width, int height, int videoBitRate, int frameRate,
-                                    int iframeInterval, int samplingRate, int audioBitRate) {
+        private StreamPublisherParam(int width, int height, int videoBitRate, int frameRate,
+                                    int iframeInterval, int samplingRate, int audioBitRate, int audioSource, int channelCfg) {
             this.width = width;
             this.height = height;
             this.videoBitRate = videoBitRate;
@@ -210,7 +213,9 @@ public class StreamPublisher {
             this.iframeInterval = iframeInterval;
             this.samplingRate = samplingRate;
             this.audioBitRate = audioBitRate;
-            audioBufferSize = AudioRecord.getMinBufferSize(samplingRate, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT) * 2;
+            this.audioBufferSize = AudioRecord.getMinBufferSize(samplingRate, channelCfg, AudioFormat.ENCODING_PCM_16BIT) * 2;
+            this.audioSource = audioSource;
+            this.channelCfg = channelCfg;
         }
 
         /**
@@ -264,6 +269,65 @@ public class StreamPublisher {
 
         public MediaFormat getAudioOutputMediaFormat() {
             return audioOutputMediaFormat;
+        }
+
+        public static class Builder {
+            private int width = 640;
+            private int height = 480;
+            private int videoBitRate = 2949120;
+            private int frameRate = 30;
+            private int iframeInterval = 5;
+            private int samplingRate = 44100;
+            private int audioBitRate = 192000;
+            private int audioSource = MediaRecorder.AudioSource.MIC;
+            private int channelCfg = AudioFormat.CHANNEL_IN_STEREO;
+
+            public Builder setWidth(int width) {
+                this.width = width;
+                return this;
+            }
+
+            public Builder setHeight(int height) {
+                this.height = height;
+                return this;
+            }
+
+            public Builder setVideoBitRate(int videoBitRate) {
+                this.videoBitRate = videoBitRate;
+                return this;
+            }
+
+            public Builder setFrameRate(int frameRate) {
+                this.frameRate = frameRate;
+                return this;
+            }
+
+            public Builder setIframeInterval(int iframeInterval) {
+                this.iframeInterval = iframeInterval;
+                return this;
+            }
+
+            public Builder setSamplingRate(int samplingRate) {
+                this.samplingRate = samplingRate;
+                return this;
+            }
+
+            public Builder setAudioBitRate(int audioBitRate) {
+                this.audioBitRate = audioBitRate;
+                return this;
+            }
+
+            public void setAudioSource(int audioSource) {
+                this.audioSource = audioSource;
+            }
+
+            public void setChannelCfg(int channelCfg) {
+                this.channelCfg = channelCfg;
+            }
+
+            public StreamPublisherParam createStreamPublisherParam() {
+                return new StreamPublisherParam(width, height, videoBitRate, frameRate, iframeInterval, samplingRate, audioBitRate, audioSource, channelCfg);
+            }
         }
     }
 

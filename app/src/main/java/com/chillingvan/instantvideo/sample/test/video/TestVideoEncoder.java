@@ -72,7 +72,7 @@ public class TestVideoEncoder {
 
     public void prepareEncoder(H264Encoder.OnDrawListener onDrawListener) {
         try {
-            h264Encoder = new H264Encoder(new StreamPublisher.StreamPublisherParam(), eglCtx);
+            h264Encoder = new H264Encoder(new StreamPublisher.StreamPublisherParam.Builder().createStreamPublisherParam(), eglCtx);
             for (GLTexture texture : glTextureList) {
                 h264Encoder.addSharedTexture(texture);
             }
