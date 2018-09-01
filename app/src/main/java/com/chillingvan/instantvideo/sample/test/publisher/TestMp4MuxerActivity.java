@@ -36,6 +36,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Surface;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.chillingvan.canvasgl.ICanvasGL;
@@ -59,6 +60,9 @@ import com.chillingvan.lib.publisher.StreamPublisher;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * This sample shows how to record a mp4 file. It cannot pause but only can restart. If you want to pause when recording, you need to generate a new file and merge old files and new file.
+ */
 public class TestMp4MuxerActivity extends AppCompatActivity {
 
     private CameraStreamPublisher streamPublisher;
@@ -74,6 +78,7 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
 
     private IAndroidCanvasHelper drawTextHelper = IAndroidCanvasHelper.Factory.createAndroidCanvasHelper(IAndroidCanvasHelper.MODE.MODE_ASYNC);
     private Paint textPaint;
+    private Button startButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,6 +98,7 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
         });
         outDirTxt = (TextView) findViewById(R.id.output_dir_txt);
         outDirTxt.setText(outputDir);
+        startButton = findViewById(R.id.test_camera_button);
 
 
         instantVideoCamera = new InstantVideoCamera(Camera.CameraInfo.CAMERA_FACING_FRONT, 640, 480);
@@ -198,13 +204,13 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
             streamPublisher.closeAll();
         }
         if (mediaPlayer.isPlaying()) {
-            mediaPlayer.stop();
+            mediaPlayer.release();
         }
+        startButton.setText("START");
     }
 
     private void playMedia() {
         if ((mediaPlayer.isPlaying() || mediaPlayer.isLooping())) {
-            mediaPlayer.restart();
             return;
         }
 

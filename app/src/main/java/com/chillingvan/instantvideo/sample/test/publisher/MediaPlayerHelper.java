@@ -85,6 +85,7 @@ public class MediaPlayerHelper {
                 Toast.makeText(context, "End Play", Toast.LENGTH_LONG).show();
                 m.stop();
                 m.release();
+                mediaPlayer = null;
             }
         });
 
@@ -102,15 +103,11 @@ public class MediaPlayerHelper {
         }
     }
 
-    public void stop() {
-        if (mediaPlayer != null) {
-            mediaPlayer.stop();
-        }
-    }
 
     public void release() {
         if (mediaPlayer != null) {
             mediaPlayer.release();
+            mediaPlayer = null;
         }
     }
 }
