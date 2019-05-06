@@ -75,7 +75,7 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
         addrEditText = (EditText) findViewById(R.id.ip_input_test);
 
 
-        instantVideoCamera = new InstantVideoCamera(Camera.CameraInfo.CAMERA_FACING_FRONT, 640, 480);
+        instantVideoCamera = new InstantVideoCamera(Camera.CameraInfo.CAMERA_FACING_BACK, 640, 480);
 //        instantVideoCamera = new InstantVideoCamera(Camera.CameraInfo.CAMERA_FACING_FRONT, 1280, 720);
 
         handlerThread = new HandlerThread("StreamPublisherOpen");
