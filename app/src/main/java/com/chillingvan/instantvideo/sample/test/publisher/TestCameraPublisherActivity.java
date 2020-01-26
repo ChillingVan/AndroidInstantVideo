@@ -92,7 +92,7 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
                 streamPublisher.prepareEncoder(streamPublisherParam, new H264Encoder.OnDrawListener() {
                     @Override
                     public void onGLDraw(ICanvasGL canvasGL, List<GLTexture> producedTextures, List<GLTexture> consumedTextures) {
-                        GLTexture texture = producedTextures.get(0);
+                        GLTexture texture = consumedTextures.get(0);
                         drawVideoFrame(canvasGL, texture.getSurfaceTexture(), texture.getRawTexture());
                     }
                 });
