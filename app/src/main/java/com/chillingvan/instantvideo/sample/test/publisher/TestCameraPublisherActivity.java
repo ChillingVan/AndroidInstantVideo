@@ -57,6 +57,8 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
     private Handler handler;
     private EditText addrEditText;
     private HandlerThread handlerThread;
+    private TextureFilter textureFilterLT;
+    private TextureFilter textureFilterRT;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,8 +115,12 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
     private void drawVideoFrame(ICanvasGL canvasGL, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
         // Here you can do video process
         // 此处可以视频处理，例如加水印等等
-        TextureFilter textureFilterLT = new BasicTextureFilter();
-        TextureFilter textureFilterRT = new HueFilter(180);
+        if(textureFilterLT == null) {
+            textureFilterLT = new BasicTextureFilter();
+        }
+        if(textureFilterRT == null) {
+            textureFilterRT = new HueFilter(180);
+        }
         int width = outsideTexture.getWidth();
         int height = outsideTexture.getHeight();
         canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, 0, width /2, height /2, textureFilterLT);
