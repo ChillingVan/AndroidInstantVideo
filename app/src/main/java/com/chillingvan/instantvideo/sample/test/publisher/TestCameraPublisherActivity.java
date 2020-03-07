@@ -101,7 +101,12 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
                     streamPublisher.startPublish();
                 } catch (IOException e) {
                     e.printStackTrace();
-                    ((TextView)findViewById(R.id.test_camera_button)).setText("START");
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ((TextView)findViewById(R.id.test_camera_button)).setText("START");
+                        }
+                    });
                 }
             }
         };

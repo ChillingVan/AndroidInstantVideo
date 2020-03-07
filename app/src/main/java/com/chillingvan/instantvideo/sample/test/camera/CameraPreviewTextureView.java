@@ -48,7 +48,7 @@ public class CameraPreviewTextureView extends GLMultiTexProducerView {
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         super.onSurfaceTextureAvailable(surface, width, height);
-        if (mGLThread == null) {
+        if (mSharedEglContext == null) {
             setSharedEglContext(EglContextWrapper.EGL_NO_CONTEXT_WRAPPER);
         }
     }
