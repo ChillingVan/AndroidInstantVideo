@@ -176,13 +176,14 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
         drawTextHelper.init(width/2, height/2);
         drawTextHelper.draw(new IAndroidCanvasHelper.CanvasPainter() {
             @Override
-            public void draw(Canvas androidCanvas) {
+            public void draw(Canvas androidCanvas, Bitmap drawingBitmap) {
                 androidCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
                 androidCanvas.drawText("白色, White", 100, 100, textPaint);
             }
         });
         Bitmap outputBitmap = drawTextHelper.getOutputBitmap();
         canvasGL.invalidateTextureContent(outputBitmap);
+        canvasGL.drawBitmap(outputBitmap, 0, 0);
 
         SurfaceTexture mediaSurfaceTexture = mediaTexture.getSurfaceTexture();
         RawTexture mediaRawTexture = mediaTexture.getRawTexture();
