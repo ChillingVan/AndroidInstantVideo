@@ -20,11 +20,6 @@
 
 package com.chillingvan.instantvideo.sample.test.publisher;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.MediaRecorder;
@@ -40,7 +35,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.chillingvan.canvasgl.ICanvasGL;
-import com.chillingvan.canvasgl.androidCanvas.IAndroidCanvasHelper;
 import com.chillingvan.canvasgl.glcanvas.BasicTexture;
 import com.chillingvan.canvasgl.glcanvas.RawTexture;
 import com.chillingvan.canvasgl.glview.texture.GLTexture;
@@ -49,8 +43,8 @@ import com.chillingvan.canvasgl.textureFilter.HueFilter;
 import com.chillingvan.canvasgl.textureFilter.TextureFilter;
 import com.chillingvan.canvasgl.util.Loggers;
 import com.chillingvan.instantvideo.sample.R;
+import com.chillingvan.instantvideo.sample.test.VideoFrameHandlerHelper;
 import com.chillingvan.instantvideo.sample.test.camera.CameraPreviewTextureView;
-import com.chillingvan.instantvideo.sample.util.ScreenUtil;
 import com.chillingvan.lib.camera.InstantVideoCamera;
 import com.chillingvan.lib.encoder.video.H264Encoder;
 import com.chillingvan.lib.muxer.MP4Muxer;
@@ -76,14 +70,13 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
     private MediaPlayerHelper mediaPlayer = new MediaPlayerHelper();
     private Surface mediaSurface;
 
-    private IAndroidCanvasHelper drawTextHelper = IAndroidCanvasHelper.Factory.createAndroidCanvasHelper(IAndroidCanvasHelper.MODE.MODE_ASYNC);
-    private Paint textPaint;
+    private VideoFrameHandlerHelper videoFrameHandlerHelper;
     private Button startButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initTextPaint();
+        initFrameHandlerHelper();
         outputDir = getExternalFilesDir(null) + "/test_mp4_encode.mp4";
         setContentView(R.layout.activity_test_mp4_muxer);
         cameraPreviewTextureView = findViewById(R.id.camera_produce_view);
@@ -157,10 +150,8 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
         });
     }
 
-    private void initTextPaint() {
-        textPaint = new Paint();
-        textPaint.setColor(Color.WHITE);
-        textPaint.setTextSize(ScreenUtil.dpToPx(getApplicationContext(), 15));
+    private void initFrameHandlerHelper() {
+        videoFrameHandlerHelper = new VideoFrameHandlerHelper(getApplicationContext());
     }
 
     private void drawVideoFrame(ICanvasGL canvasGL, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture, GLTexture mediaTexture) {
@@ -172,19 +163,8 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
         int height = outsideTexture.getHeight();
         canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, 0, width /2, height /2, textureFilterLT);
         canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, height/2, width/2, height, textureFilterRT);
-
-        drawTextHelper.init(width/2, height/2);
-        drawTextHelper.draw(new IAndroidCanvasHelper.CanvasPainter() {
-            @Override
-            public void draw(Canvas androidCanvas, Bitmap drawingBitmap) {
-                androidCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-                androidCanvas.drawText("白色, White", 100, 100, textPaint);
-            }
-        });
-        Bitmap outputBitmap = drawTextHelper.getOutputBitmap();
-        canvasGL.invalidateTextureContent(outputBitmap);
-        canvasGL.drawBitmap(outputBitmap, 0, 0);
-
+        videoFrameHandlerHelper.initDrawHelper(width/2, height/2);
+        videoFrameHandlerHelper.drawText(canvasGL);
         SurfaceTexture mediaSurfaceTexture = mediaTexture.getSurfaceTexture();
         RawTexture mediaRawTexture = mediaTexture.getRawTexture();
         mediaRawTexture.setIsFlippedVertically(true);

@@ -39,6 +39,7 @@ import com.chillingvan.canvasgl.textureFilter.BasicTextureFilter;
 import com.chillingvan.canvasgl.textureFilter.HueFilter;
 import com.chillingvan.canvasgl.textureFilter.TextureFilter;
 import com.chillingvan.instantvideo.sample.R;
+import com.chillingvan.instantvideo.sample.test.VideoFrameHandlerHelper;
 import com.chillingvan.instantvideo.sample.test.camera.CameraPreviewTextureView;
 import com.chillingvan.lib.camera.InstantVideoCamera;
 import com.chillingvan.lib.encoder.video.H264Encoder;
@@ -59,10 +60,12 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
     private HandlerThread handlerThread;
     private TextureFilter textureFilterLT;
     private TextureFilter textureFilterRT;
+    private VideoFrameHandlerHelper videoFrameHandlerHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        initFrameHandlerHelper();
         setContentView(R.layout.activity_test_camera_publisher);
         cameraPreviewTextureView = findViewById(R.id.camera_produce_view);
         cameraPreviewTextureView.setOnDrawListener(new H264Encoder.OnDrawListener() {
@@ -117,6 +120,10 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
 //        streamPublisher = new CameraStreamPublisher(new MP4Muxer(), cameraPreviewTextureView, instantVideoCamera);
     }
 
+    private void initFrameHandlerHelper() {
+        videoFrameHandlerHelper = new VideoFrameHandlerHelper(getApplicationContext());
+    }
+
     private void drawVideoFrame(ICanvasGL canvasGL, @Nullable SurfaceTexture outsideSurfaceTexture, @Nullable BasicTexture outsideTexture) {
         // Here you can do video process
         // 此处可以视频处理，例如加水印等等
@@ -130,7 +137,8 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
         int height = outsideTexture.getHeight();
         canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, 0, width /2, height /2, textureFilterLT);
         canvasGL.drawSurfaceTexture(outsideTexture, outsideSurfaceTexture, 0, height/2, width/2, height, textureFilterRT);
-
+        videoFrameHandlerHelper.initDrawHelper(width/2, height/2);
+        videoFrameHandlerHelper.drawText(canvasGL);
     }
 
     @Override
