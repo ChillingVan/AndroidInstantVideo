@@ -107,7 +107,7 @@ public class TestAudioEncoder {
                     Loggers.d("TestAudioEncoder", String.format("onReadOnce: readSize:%d, bufferInfo:%d", readSize, bufferInfo.size));
                     if (shouldAddPacketHeader) {
                         Loggers.d("TestAudioEncoder", String.format("onReadOnce: add packet header"));
-                        AACEncoder.addADTStoPacket(header, 7 + bufferInfo.size);
+                        AACEncoder.addADTStoPacket(header, 7 + bufferInfo.size, StreamPublisher.StreamPublisherParam.DEFAULT_CHANNEL_CNT);
                         os.write(header);
                     }
                     os.write(buffer, 0, readSize);

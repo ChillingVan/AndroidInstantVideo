@@ -73,7 +73,8 @@ public class MediaCodecInputStream extends InputStream {
             while (!Thread.interrupted() && !mClosed) {
                 synchronized (mMediaCodec) {
                     if (mClosed) return 0;
-                    encoderStatus = mMediaCodec.dequeueOutputBuffer(mBufferInfo, 110000);
+                    // timeout should not bigger than 0 for clear voice
+                    encoderStatus = mMediaCodec.dequeueOutputBuffer(mBufferInfo, 0);
                     Loggers.d(TAG, "Index: " + encoderStatus + " Time: " + mBufferInfo.presentationTimeUs + " size: " + mBufferInfo.size);
                     if (encoderStatus >= 0) {
                         if (Build.VERSION.SDK_INT >= 21) {
@@ -81,7 +82,8 @@ public class MediaCodecInputStream extends InputStream {
                         } else {
                             mBuffer = mMediaCodec.getOutputBuffers()[encoderStatus];
                         }
-                        mBuffer.position(0);
+                        mBuffer.position(mBufferInfo.offset);
+                        mBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
                         break;
                     } else if (encoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                         mMediaFormat = mMediaCodec.getOutputFormat();

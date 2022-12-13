@@ -23,6 +23,7 @@ package com.chillingvan.lib.encoder.audio;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.media.audiofx.NoiseSuppressor;
 import android.util.Log;
@@ -64,7 +65,7 @@ public class AACEncoder {
                 params.setAudioOutputMediaFormat(mediaFormat);
             }
         });
-        mAudioRecord = new AudioRecord(params.audioSource, samplingRate, params.channelCfg, AudioFormat.ENCODING_PCM_16BIT, bufferSize);
+        mAudioRecord = new AudioRecord(params.audioSource, samplingRate, params.channelCfg, AudioFormat.ENCODING_PCM_16BIT, bufferSize * 10);
         if (NoiseSuppressor.isAvailable()) {
             NoiseSuppressor noiseSuppressor = NoiseSuppressor.create(mAudioRecord.getAudioSessionId());
         }
@@ -110,10 +111,10 @@ public class AACEncoder {
     }
 
 
-    public static void addADTStoPacket(byte[] packet, int packetLen) {
-        int profile = 2; // AAC LC
+    public static void addADTStoPacket(byte[] packet, int packetLen, int channelCnt) {
+        int profile = MediaCodecInfo.CodecProfileLevel.AACObjectLC; // AAC LC
         int freqIdx = 4; // 44.1KHz
-        int chanCfg = 2; // CPE
+        int chanCfg = channelCnt; // CPE channel cnt
 
 
         // fill in ADTS data

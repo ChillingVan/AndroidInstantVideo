@@ -114,7 +114,7 @@ public class TestMp4MuxerActivity extends AppCompatActivity {
                         .setFrameRate(30)
                         .setIframeInterval(1)
                         .setSamplingRate(44100)
-                        .setAudioBitRate(19200)
+                        .setAudioBitRate(32000)
                         .setAudioSource(MediaRecorder.AudioSource.MIC)
                         .createStreamPublisherParam();
                 streamPublisherParam.outputFilePath = outputDir;

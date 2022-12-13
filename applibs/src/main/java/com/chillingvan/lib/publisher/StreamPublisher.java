@@ -179,15 +179,19 @@ public class StreamPublisher {
     }
 
     public static class StreamPublisherParam {
+
+        public static final int DEFAULT_CHANNEL_CNT = 1;
+
         public int width = 640;
         public int height = 480;
         public int videoBitRate = 2949120;
         public int frameRate = 30;
         public int iframeInterval = 5;
-        public int samplingRate = 44100;
-        public int audioBitRate = 192000;
+        public int samplingRate;
+        public int audioBitRate;
         public int audioSource;
-        public int channelCfg = AudioFormat.CHANNEL_IN_STEREO;
+        public int channelCfg;
+        public int channelCnt;
 
         public String videoMIMEType = "video/avc";
         public String audioMIME = "audio/mp4a-latm";
@@ -201,11 +205,11 @@ public class StreamPublisher {
         private int initialTextureCount = 1;
 
         public StreamPublisherParam() {
-            this(640, 480, 2949120, 30, 5, 44100, 192000, MediaRecorder.AudioSource.MIC, AudioFormat.CHANNEL_IN_STEREO);
+            this(640, 480, 2949120, 30, 5, 44100, 32000, MediaRecorder.AudioSource.MIC, AudioFormat.CHANNEL_IN_MONO, DEFAULT_CHANNEL_CNT);
         }
 
         private StreamPublisherParam(int width, int height, int videoBitRate, int frameRate,
-                                    int iframeInterval, int samplingRate, int audioBitRate, int audioSource, int channelCfg) {
+                                    int iframeInterval, int samplingRate, int audioBitRate, int audioSource, int channelCfg, int channelCnt) {
             this.width = width;
             this.height = height;
             this.videoBitRate = videoBitRate;
@@ -216,6 +220,7 @@ public class StreamPublisher {
             this.audioBufferSize = AudioRecord.getMinBufferSize(samplingRate, channelCfg, AudioFormat.ENCODING_PCM_16BIT) * 2;
             this.audioSource = audioSource;
             this.channelCfg = channelCfg;
+            this.channelCnt = channelCnt;
         }
 
         /**
@@ -247,7 +252,7 @@ public class StreamPublisher {
         }
 
         public MediaFormat createAudioMediaFormat() {
-            MediaFormat format = MediaFormat.createAudioFormat(audioMIME, samplingRate, 2);
+            MediaFormat format = MediaFormat.createAudioFormat(audioMIME, samplingRate, channelCnt);
             format.setInteger(MediaFormat.KEY_BIT_RATE, audioBitRate);
             format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
             format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, audioBufferSize);
@@ -278,9 +283,10 @@ public class StreamPublisher {
             private int frameRate = 30;
             private int iframeInterval = 5;
             private int samplingRate = 44100;
-            private int audioBitRate = 192000;
+            private int audioBitRate = 32000;
             private int audioSource = MediaRecorder.AudioSource.MIC;
-            private int channelCfg = AudioFormat.CHANNEL_IN_STEREO;
+            private int channelCfg = AudioFormat.CHANNEL_IN_MONO;
+            private int channelCnt = 1;
 
             public Builder setWidth(int width) {
                 this.width = width;
@@ -327,8 +333,12 @@ public class StreamPublisher {
                 return this;
             }
 
+            public void setChannelCnt(int channelCnt) {
+                this.channelCnt = channelCnt;
+            }
+
             public StreamPublisherParam createStreamPublisherParam() {
-                return new StreamPublisherParam(width, height, videoBitRate, frameRate, iframeInterval, samplingRate, audioBitRate, audioSource, channelCfg);
+                return new StreamPublisherParam(width, height, videoBitRate, frameRate, iframeInterval, samplingRate, audioBitRate, audioSource, channelCfg, channelCnt);
             }
         }
     }
