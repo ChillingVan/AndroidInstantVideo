@@ -62,8 +62,8 @@ public class RTMPStreamMuxer extends BaseMuxer {
         // -2 Url format error; -3 Connect error.
         int open = rtmpMuxer.open(params.outputUrl, params.width, params.height);
         Loggers.d("RTMPStreamMuxer", String.format(Locale.CHINA, "open: open: %d", open));
-        int connected = rtmpMuxer.isConnected();
-        Loggers.d("RTMPStreamMuxer", String.format(Locale.CHINA, "open: isConnected: %d", connected));
+        boolean connected = rtmpMuxer.isConnected();
+        Loggers.d("RTMPStreamMuxer", String.format(Locale.CHINA, "open: isConnected: %b", connected));
 
         Loggers.d("RTMPStreamMuxer", String.format("open: %s", params.outputUrl));
         if (!TextUtils.isEmpty(params.outputFilePath)) {
@@ -100,7 +100,7 @@ public class RTMPStreamMuxer extends BaseMuxer {
             }
         });
         frameSender.sendStartMessage();
-        return connected;
+        return connected ? 1 : 0;
     }
 
     @Override
