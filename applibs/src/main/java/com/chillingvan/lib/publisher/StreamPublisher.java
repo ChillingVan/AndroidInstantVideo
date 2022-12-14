@@ -205,7 +205,7 @@ public class StreamPublisher {
         private int initialTextureCount = 1;
 
         public StreamPublisherParam() {
-            this(640, 480, 2949120, 30, 5, 44100, 32000, MediaRecorder.AudioSource.MIC, AudioFormat.CHANNEL_IN_MONO, DEFAULT_CHANNEL_CNT);
+            this(640, 480, 2949120, 30, 5, 44100, 32000, MediaRecorder.AudioSource.VOICE_COMMUNICATION, AudioFormat.CHANNEL_IN_MONO, DEFAULT_CHANNEL_CNT);
         }
 
         private StreamPublisherParam(int width, int height, int videoBitRate, int frameRate,
@@ -284,7 +284,7 @@ public class StreamPublisher {
             private int iframeInterval = 5;
             private int samplingRate = 44100;
             private int audioBitRate = 32000;
-            private int audioSource = MediaRecorder.AudioSource.MIC;
+            private int audioSource = MediaRecorder.AudioSource.VOICE_COMMUNICATION;
             private int channelCfg = AudioFormat.CHANNEL_IN_MONO;
             private int channelCnt = 1;
 

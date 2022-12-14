@@ -25,6 +25,8 @@ import android.media.AudioRecord;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
+import android.media.audiofx.AcousticEchoCanceler;
+import android.media.audiofx.AutomaticGainControl;
 import android.media.audiofx.NoiseSuppressor;
 import android.util.Log;
 
@@ -68,8 +70,22 @@ public class AACEncoder {
         mAudioRecord = new AudioRecord(params.audioSource, samplingRate, params.channelCfg, AudioFormat.ENCODING_PCM_16BIT, bufferSize * 10);
         if (NoiseSuppressor.isAvailable()) {
             NoiseSuppressor noiseSuppressor = NoiseSuppressor.create(mAudioRecord.getAudioSessionId());
+            if (noiseSuppressor != null) {
+                noiseSuppressor.setEnabled(true);
+            }
         }
-
+        if (AcousticEchoCanceler.isAvailable()) {
+            AcousticEchoCanceler aec = AcousticEchoCanceler.create(mAudioRecord.getAudioSessionId());
+            if (aec != null) {
+                aec.setEnabled(true); //android 11 issue low volume
+            }
+        }
+        if (AutomaticGainControl.isAvailable()) {
+            AutomaticGainControl agc = AutomaticGainControl.create(mAudioRecord.getAudioSessionId());
+            if (agc != null) {
+                agc.setEnabled(true);
+            }
+        }
     }
 
     public void start() {
