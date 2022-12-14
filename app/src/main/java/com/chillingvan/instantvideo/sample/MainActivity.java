@@ -31,6 +31,7 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
+import com.chillingvan.canvasgl.util.FileLogger;
 import com.chillingvan.canvasgl.util.Loggers;
 
 import java.text.Collator;
@@ -53,6 +54,8 @@ public class MainActivity extends ListActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Loggers.DEBUG = true;
+        FileLogger.init(getExternalFilesDir(null).getAbsolutePath());
+        FileLogger.d("MainActivity", "init -----------------");
         CrashHandler.init(getApplicationContext());
         getPermission();
 
