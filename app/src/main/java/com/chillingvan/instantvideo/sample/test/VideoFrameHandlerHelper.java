@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PorterDuff;
 
 import com.chillingvan.canvasgl.ICanvasGL;
 import com.chillingvan.canvasgl.androidCanvas.IAndroidCanvasHelper;
@@ -43,7 +42,6 @@ public class VideoFrameHandlerHelper {
         drawTextHelper.draw(new IAndroidCanvasHelper.CanvasPainter() {
             @Override
             public void draw(Canvas androidCanvas, Bitmap drawingBitmap) {
-                androidCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
                 androidCanvas.drawText("白色, White", 100, 100, textPaint);
             }
         });
