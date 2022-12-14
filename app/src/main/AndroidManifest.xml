@@ -32,7 +32,8 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -41,7 +42,8 @@
         </activity>
         <activity
             android:name=".test.video.TestVideoEncoderActivity"
-            android:label="TestVideoEncoderActivity">
+            android:label="TestVideoEncoderActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -50,7 +52,8 @@
         </activity>
         <activity
             android:name=".test.audio.TestAudioEncoderActivity"
-            android:label="TestAudioEncoderActivity">
+            android:label="TestAudioEncoderActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -59,7 +62,8 @@
         </activity>
         <activity
             android:name=".test.camera.TestCameraAndVideoActivity"
-            android:label="TestCameraAndVideoActivity">
+            android:label="TestCameraAndVideoActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -68,7 +72,8 @@
         </activity>
         <activity
             android:name=".test.publisher.TestCameraPublisherActivity"
-            android:label="TestCameraPublisherActivity">
+            android:label="TestCameraPublisherActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -77,7 +82,7 @@
         </activity>
         <activity android:name=".test.publisher.TestMp4MuxerActivity"
                   android:label="TestMp4MuxerActivity"
-            >
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
