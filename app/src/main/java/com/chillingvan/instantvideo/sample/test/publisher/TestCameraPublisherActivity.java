@@ -26,8 +26,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -49,6 +47,9 @@ import com.chillingvan.lib.publisher.StreamPublisher;
 
 import java.io.IOException;
 import java.util.List;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class TestCameraPublisherActivity extends AppCompatActivity {
 
@@ -154,6 +155,7 @@ public class TestCameraPublisherActivity extends AppCompatActivity {
         if (streamPublisher.isStart()) {
             streamPublisher.closeAll();
         }
+        ((TextView)findViewById(R.id.test_camera_button)).setText("START");
     }
 
     @Override

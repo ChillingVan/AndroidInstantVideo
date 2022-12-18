@@ -68,6 +68,7 @@ public class CameraStreamPublisher {
                 }
                 GLTexture texture = producedTextureList.get(0);
                 SurfaceTexture surfaceTexture = texture.getSurfaceTexture();
+                streamPublisher.clearTextures();
                 streamPublisher.addSharedTexture(new GLTexture(texture.getRawTexture(), surfaceTexture));
                 surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
                     @Override

@@ -129,6 +129,10 @@ public class StreamPublisher {
         };
     }
 
+    public void clearTextures() {
+        sharedTextureList.clear();
+    }
+
     public void addSharedTexture(GLTexture outsideTexture) {
         sharedTextureList.add(outsideTexture);
     }

@@ -36,7 +36,7 @@ public class CameraPreviewTextureView extends GLMultiTexProducerView {
 
     @Override
     protected int getInitialTexCount() {
-        return 2;
+        return 1;
     }
 
     @Override
